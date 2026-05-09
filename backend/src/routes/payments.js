@@ -1,0 +1,113 @@
+import express from 'express';
+import Stripe from 'stripe';
+import prisma from '../config/database.js';
+import { authenticate, authorize } from '../middleware/auth.js';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const router = express.Router();
+
+// POST /api/payments/create-intent
+router.post('/create-intent', authenticate, async (req, res, next) => {
+  try {
+    const { reservationId } = req.body;
+
+    const reservation = await prisma.reservation.findUnique({
+      where: { id: reservationId },
+      include: { guest: true },
+    });
+
+    if (!reservation) return res.status(404).json({ error: 'Reservation not found' });
+    if (reservation.stripePaymentId) {
+      return res.status(409).json({ error: 'Payment already created for this reservation' });
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(Number(reservation.totalAmount) * 100), // cents
+      currency: 'eur',
+      metadata: {
+        reservationId: reservation.id,
+        guestName: reservation.guest.name,
+      },
+    });
+
+    res.json({ clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/payments/confirm
+router.post('/confirm', authenticate, async (req, res, next) => {
+  try {
+    const { reservationId, paymentIntentId } = req.body;
+
+    const reservation = await prisma.reservation.findUnique({ where: { id: reservationId } });
+    if (!reservation) return res.status(404).json({ error: 'Reservation not found' });
+
+    // Create payment record
+    const payment = await prisma.payment.create({
+      data: {
+        reservationId,
+        amount: reservation.totalAmount,
+        currency: 'eur',
+        status: 'COMPLETED',
+        stripeChargeId: paymentIntentId,
+        method: 'card',
+      },
+    });
+
+    // Update reservation
+    await prisma.reservation.update({
+      where: { id: reservationId },
+      data: { stripePaymentId: paymentIntentId, status: 'CONFIRMED' },
+    });
+
+    res.json({ payment });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/payments/:reservationId
+router.get('/:reservationId', authenticate, async (req, res, next) => {
+  try {
+    const payments = await prisma.payment.findMany({
+      where: { reservationId: req.params.reservationId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    res.json({ payments });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/payments/refund
+router.post('/refund', authenticate, authorize('ADMIN'), async (req, res, next) => {
+  try {
+    const { paymentId } = req.body;
+
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: { reservation: true },
+    });
+
+    if (!payment) return res.status(404).json({ error: 'Payment not found' });
+    if (payment.status !== 'COMPLETED') {
+      return res.status(409).json({ error: 'Payment is not completed' });
+    }
+
+    await stripe.refunds.create({ payment_intent: payment.stripeChargeId });
+
+    await prisma.payment.update({
+      where: { id: paymentId },
+      data: { status: 'REFUNDED' },
+    });
+
+    res.json({ message: 'Refund processed' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+export default router;
