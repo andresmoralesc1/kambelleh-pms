@@ -46,8 +46,8 @@ function StatCard({ icon: Icon, label, value, sub, color = 'primary' }) {
 
 function ArrivalRow({ guest, room, checkIn }) {
   return (
-    <div className="flex items-center gap-3 py-2.5 border-b border-surface-100 last:border-0">
-      <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 text-xs font-semibold flex-shrink-0">
+    <div role="listitem" className="flex items-center gap-3 py-2.5 border-b border-surface-100 last:border-0">
+      <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 text-xs font-semibold flex-shrink-0" aria-hidden="true">
         {guest.name.charAt(0)}
       </div>
       <div className="flex-1 min-w-0">
@@ -73,11 +73,11 @@ export default function Dashboard() {
   if (isLoading) return <DashboardSkeleton />;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6" role="main">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center" aria-hidden="true">
             <GreetingIcon className="w-5 h-5 text-primary-600" />
           </div>
           <div>
@@ -86,10 +86,11 @@ export default function Dashboard() {
           </div>
         </div>
         <Link to="/reservations/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors">
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
+          aria-label="Crear nueva reserva">
           + Nueva reserva
         </Link>
-      </div>
+      </header>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -106,59 +107,60 @@ export default function Dashboard() {
       {/* Content grid */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Arrivals today */}
-        <div className="bg-white rounded-2xl border border-surface-200 p-5 shadow-sm">
+        <section className="bg-white rounded-2xl border border-surface-200 p-5 shadow-sm" aria-labelledby="arrivals-heading">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-surface-900">Llegadas de hoy</h2>
-            <span className="text-xs px-2 py-1 rounded-full bg-primary-50 text-primary-600 font-medium">{stats?.arrivalsToday || 0}</span>
+            <h2 id="arrivals-heading" className="font-semibold text-surface-900">Llegadas de hoy</h2>
+            <span className="text-xs px-2 py-1 rounded-full bg-primary-50 text-primary-600 font-medium" aria-label={`${stats?.arrivalsToday || 0} llegadas`}>{stats?.arrivalsToday || 0}</span>
           </div>
           {stats?.arrivalsToday > 0 ? (
-            <div>
+            <div role="list" aria-label="Lista de llegadas de hoy">
               {stats.arrivals?.slice(0, 5).map((r) => (
                 <ArrivalRow key={r.id} guest={r.guest} room={r.room} checkIn={r.checkIn} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-surface-500">
-              <CalendarDays className="w-8 h-8 mx-auto mb-2 opacity-40" />
+            <div className="text-center py-8 text-surface-500" role="status" aria-live="polite">
+              <CalendarDays className="w-8 h-8 mx-auto mb-2 opacity-40" aria-hidden="true" />
               <p className="text-sm">No hay llegadas hoy</p>
             </div>
           )}
-        </div>
+        </section>
 
         {/* Departures today */}
-        <div className="bg-white rounded-2xl border border-surface-200 p-5 shadow-sm">
+        <section className="bg-white rounded-2xl border border-surface-200 p-5 shadow-sm" aria-labelledby="departures-heading">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-surface-900">Salidas de hoy</h2>
-            <span className="text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-600 font-medium">{stats?.departuresToday || 0}</span>
+            <h2 id="departures-heading" className="font-semibold text-surface-900">Salidas de hoy</h2>
+            <span className="text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-600 font-medium" aria-label={`${stats?.departuresToday || 0} salidas`}>{stats?.departuresToday || 0}</span>
           </div>
           {stats?.departuresToday > 0 ? (
-            <div>
+            <div role="list" aria-label="Lista de salidas de hoy">
               {stats.departures?.slice(0, 5).map((r) => (
                 <ArrivalRow key={r.id} guest={r.guest} room={r.room} checkIn={r.checkOut} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-surface-500">
-              <CalendarDays className="w-8 h-8 mx-auto mb-2 opacity-40" />
+            <div className="text-center py-8 text-surface-500" role="status" aria-live="polite">
+              <CalendarDays className="w-8 h-8 mx-auto mb-2 opacity-40" aria-hidden="true" />
               <p className="text-sm">No hay salidas hoy</p>
             </div>
           )}
-        </div>
+        </section>
 
         {/* Upcoming reservations */}
-        <div className="bg-white rounded-2xl border border-surface-200 p-5 shadow-sm lg:col-span-2">
+        <section className="bg-white rounded-2xl border border-surface-200 p-5 shadow-sm lg:col-span-2" aria-labelledby="upcoming-heading">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-surface-900">Próximas reservas</h2>
-            <Link to="/reservations" className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1">
-              Ver todas <ArrowRight className="w-3 h-3" />
+            <h2 id="upcoming-heading" className="font-semibold text-surface-900">Próximas reservas</h2>
+            <Link to="/reservations" className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1" aria-label="Ver todas las reservas">
+              Ver todas <ArrowRight className="w-3 h-3" aria-hidden="true" />
             </Link>
           </div>
           {stats?.upcomingArrivals?.length > 0 ? (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3" role="list" aria-label="Próximas reservas">
               {stats.upcomingArrivals.map((r) => (
                 <div key={r.id}
-                  className="flex items-center gap-3 p-3 rounded-xl border border-surface-200 hover:border-surface-300 transition-colors">
-                  <div className="w-9 h-9 rounded-full bg-surface-100 flex items-center justify-center text-sm font-semibold text-surface-600 flex-shrink-0">
+                  className="flex items-center gap-3 p-3 rounded-xl border border-surface-200 hover:border-surface-300 transition-colors"
+                  role="listitem">
+                  <div className="w-9 h-9 rounded-full bg-surface-100 flex items-center justify-center text-sm font-semibold text-surface-600 flex-shrink-0" aria-hidden="true">
                     {r.guest.name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -169,9 +171,9 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            <p className="text-center py-6 text-surface-500 text-sm">No hay reservas próximas</p>
+            <p className="text-center py-6 text-surface-500 text-sm" role="status" aria-live="polite">No hay reservas próximas</p>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );

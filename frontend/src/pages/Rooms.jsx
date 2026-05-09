@@ -31,9 +31,9 @@ function RoomModal({ room, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="room-modal-title">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
-        <h2 className="text-lg font-bold text-surface-900 mb-4">
+        <h2 id="room-modal-title" className="text-lg font-bold text-surface-900 mb-4">
           {room ? 'Editar' : 'Nueva'} habitación
         </h2>
 
@@ -116,7 +116,7 @@ function RoomModal({ room, onClose }) {
           </div>
 
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onClose}
+            <button type="button" onClick={onClose} aria-label="Cerrar"
               className="flex-1 px-4 py-2 rounded-xl border border-surface-300 text-sm font-medium text-surface-600 hover:bg-surface-50 transition-colors">
               Cancelar
             </button>
@@ -153,18 +153,19 @@ export default function Rooms() {
   const statusLabels = { ALL: 'Todas', AVAILABLE: 'Disponibles', OCCUPIED: 'Ocupadas', MAINTENANCE: 'Mantenimiento' };
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-6 space-y-5" role="main">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-surface-900">Habitaciones</h1>
           <p className="text-surface-500 text-sm mt-0.5">{rooms.length} habitaciones registradas</p>
         </div>
         <button onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors">
-          <Plus className="w-4 h-4" /> Nueva habitación
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
+          aria-label="Crear nueva habitación">
+          <Plus className="w-4 h-4" aria-hidden="true" /> Nueva habitación
         </button>
-      </div>
+      </header>
 
       {/* Filters */}
       <div className="flex gap-2 flex-wrap">
@@ -174,7 +175,8 @@ export default function Rooms() {
               filter === f
                 ? 'bg-surface-800 text-white'
                 : 'bg-white border border-surface-200 text-surface-600 hover:bg-surface-50'
-            }`}>
+            }`}
+            aria-pressed={filter === f}>
             {statusLabels[f]}
           </button>
         ))}
@@ -227,8 +229,9 @@ export default function Rooms() {
                       <p className="text-xs text-surface-500">{typeLabels[room.type] || room.type}</p>
                     </div>
                   </div>
-                  <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${status.bg} ${status.text}`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                  <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${status.bg} ${status.text}`}
+                    aria-label={`Estado: ${status.label}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} aria-hidden="true" />
                     {status.label}
                   </span>
                 </div>
@@ -257,10 +260,12 @@ export default function Rooms() {
                   <span className="text-lg font-bold text-primary-600">€{Number(room.pricePerNight).toFixed(2)}</span>
                   <div className="flex gap-1">
                     <button onClick={() => setShowModal(room)}
+                      aria-label={`Editar habitación ${room.number}`}
                       className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-500 hover:text-surface-700 transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDelete(room.id)}
+                      aria-label={`Eliminar habitación ${room.number}`}
                       className="p-1.5 rounded-lg hover:bg-red-50 text-surface-500 hover:text-red-600 transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>

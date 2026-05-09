@@ -47,11 +47,11 @@ function ReservationModal({ reservation, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="reservation-modal-title">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-surface-900">Reserva #{reservation.id.slice(0, 8)}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-surface-100"><X className="w-5 h-5" /></button>
+          <h2 id="reservation-modal-title" className="text-lg font-bold text-surface-900">Reserva #{reservation.id.slice(0, 8)}</h2>
+          <button onClick={onClose} aria-label="Cerrar" className="p-1.5 rounded-lg hover:bg-surface-100"><X className="w-5 h-5" /></button>
         </div>
 
         {error && (
@@ -148,33 +148,36 @@ export default function Reservations() {
   const statusLabels = { ALL: 'Todas', PENDING: 'Pendiente', CONFIRMED: 'Confirmada', CHECKED_IN: 'Check-in', CHECKED_OUT: 'Check-out', CANCELLED: 'Cancelada' };
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-6 space-y-5" role="main">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-surface-900">Reservas</h1>
           <p className="text-surface-500 text-sm mt-0.5">{filtered.length} reservas</p>
         </div>
         <Link to="/reservations/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors">
-          <Plus className="w-4 h-4" /> Nueva reserva
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
+          aria-label="Crear nueva reserva">
+          <Plus className="w-4 h-4" aria-hidden="true" /> Nueva reserva
         </Link>
-      </div>
+      </header>
 
       {/* Search + filters */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
-          <input value={search} onChange={e => setSearch(e.target.value)}
+          <label htmlFor="reservation-search" className="sr-only">Buscar reservas</label>
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" aria-hidden="true" />
+          <input id="reservation-search" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Buscar por huésped o habitación..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow" />
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap" role="group" aria-label="Filtrar por estado">
           {statusFilters.map(s => (
             <button key={s} onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 statusFilter === s ? 'bg-surface-800 text-white' : 'bg-white border border-surface-200 text-surface-600 hover:bg-surface-50'
-              }`}>
+              }`}
+              aria-pressed={statusFilter === s}>
               {statusLabels[s]}
             </button>
           ))}
@@ -198,15 +201,15 @@ export default function Reservations() {
         /* Table */
         <div className="bg-white rounded-2xl border border-surface-200 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px]">
+            <table className="w-full min-w-[640px]" role="table" aria-label="Lista de reservas">
               <thead>
                 <tr className="border-b border-surface-200 bg-surface-50">
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wide">Huésped</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wide">Habitación</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wide">Fechas</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wide">Total</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wide">Estado</th>
-                  <th className="text-right px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wide">Acciones</th>
+                  <th scope="col" className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wide">Huésped</th>
+                  <th scope="col" className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wide">Habitación</th>
+                  <th scope="col" className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wide">Fechas</th>
+                  <th scope="col" className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wide">Total</th>
+                  <th scope="col" className="text-left px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wide">Estado</th>
+                  <th scope="col" className="text-right px-5 py-3 text-xs font-semibold text-surface-500 uppercase tracking-wide">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -231,6 +234,7 @@ export default function Reservations() {
                     <td className="px-5 py-4"><StatusBadge status={r.status} /></td>
                     <td className="px-5 py-4 text-right">
                       <button onClick={() => setSelected(r)}
+                        aria-label={`Ver detalles de reserva de ${r.guest?.name}`}
                         className="p-2 rounded-lg hover:bg-surface-100 text-surface-500 hover:text-surface-700 transition-colors">
                         <Eye className="w-4 h-4" />
                       </button>

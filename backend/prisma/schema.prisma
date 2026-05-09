@@ -93,6 +93,8 @@ model Guest {
 
   reservations Reservation[]
 
+  @@index([email])
+  @@index([phone])
   @@map("guests")
 }
 
@@ -127,6 +129,9 @@ model Reservation {
   createdBy  User?      @relation("CreatedBy", fields: [createdById], references: [id])
   payments   Payment[]
 
+  @@index([status])
+  @@index([checkIn])
+  @@index([checkOut])
   @@map("reservations")
 }
 
@@ -153,6 +158,8 @@ model Payment {
 
   reservation Reservation @relation(fields: [reservationId], references: [id])
 
+  @@index([status])
+  @@index([createdAt])
   @@map("payments")
 }
 

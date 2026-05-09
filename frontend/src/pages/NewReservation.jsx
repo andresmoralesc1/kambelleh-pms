@@ -92,7 +92,9 @@ export default function NewReservation() {
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <button onClick={handleBack}
-          className="p-2 rounded-xl hover:bg-surface-100 text-surface-500 transition-colors">
+          className="p-2 rounded-xl hover:bg-surface-100 text-surface-500 transition-colors"
+          aria-label="Volver"
+        >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
@@ -100,9 +102,7 @@ export default function NewReservation() {
           <p className="text-surface-500 text-sm">Paso {step} de 3</p>
         </div>
       </div>
-
-      {/* Progress */}
-      <div className="flex items-center gap-2 mb-8">
+      <div className="flex items-center gap-2 mb-8" role="progressbar" aria-label={`Paso ${step} de 3`}>
         {[1, 2, 3].map(s => (
           <div key={s} className={`flex-1 h-1.5 rounded-full transition-colors ${s <= step ? 'bg-primary-500' : 'bg-surface-200'}`} />
         ))}
@@ -110,8 +110,8 @@ export default function NewReservation() {
 
       {/* Error banner */}
       {error && (
-        <div className="mb-5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+        <div className="mb-5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2" role="alert" aria-live="polite">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
           {error}
         </div>
       )}
@@ -126,15 +126,17 @@ export default function NewReservation() {
             </h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-1.5">Check-in *</label>
-                <input type="date" value={checkIn}
+                <label htmlFor="check-in" className="block text-sm font-medium text-surface-700 mb-1.5">Check-in *</label>
+                <input id="check-in" type="date" value={checkIn}
                   onChange={e => { setCheckIn(e.target.value); if (new Date(e.target.value) >= new Date(checkOut)) setCheckOut(e.target.value); }}
-                  className="w-full px-4 py-3 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow" />
+                  className="w-full px-4 py-3 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+                  aria-required="true" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-surface-700 mb-1.5">Check-out *</label>
-                <input type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} min={checkIn}
-                  className="w-full px-4 py-3 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow" />
+                <label htmlFor="check-out" className="block text-sm font-medium text-surface-700 mb-1.5">Check-out *</label>
+                <input id="check-out" type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} min={checkIn}
+                  className="w-full px-4 py-3 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+                  aria-required="true" />
               </div>
             </div>
             {nights > 0 && (
@@ -192,7 +194,9 @@ export default function NewReservation() {
                 <User className="w-5 h-5 text-primary-500" /> Datos del huésped
               </h2>
               <button onClick={() => { setStep(1); setSelectedRoom(null); }}
-                className="text-xs text-primary-600 hover:text-primary-700 font-medium">Cambiar habitación</button>
+                className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                aria-label="Cambiar habitación seleccionada"
+              >Cambiar habitación</button>
             </div>
 
             <div className="mb-4 p-4 rounded-xl bg-surface-50 flex items-center justify-between">
@@ -204,10 +208,10 @@ export default function NewReservation() {
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-surface-700 mb-1.5">Buscar huésped existente</label>
+              <label htmlFor="guest-search" className="block text-sm font-medium text-surface-700 mb-1.5">Buscar huésped existente</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" />
-                <input value={guestSearch} onChange={e => setGuestSearch(e.target.value)}
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" aria-hidden="true" />
+                <input id="guest-search" value={guestSearch} onChange={e => setGuestSearch(e.target.value)}
                   placeholder="Nombre, email o teléfono..."
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow" />
               </div>
@@ -246,27 +250,30 @@ export default function NewReservation() {
             ) : (
               <div className="mt-4 space-y-3 p-4 bg-surface-50 rounded-xl">
                 <div>
-                  <label className="block text-xs font-medium text-surface-700 mb-1">Nombre completo *</label>
-                  <input value={guestForm.name} onChange={e => setGuestForm({ ...guestForm, name: e.target.value })}
+                  <label htmlFor="new-guest-name" className="block text-xs font-medium text-surface-700 mb-1">Nombre completo *</label>
+                  <input id="new-guest-name" value={guestForm.name} onChange={e => setGuestForm({ ...guestForm, name: e.target.value })}
                     className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
-                    placeholder="Nombre y apellido" />
+                    placeholder="Nombre y apellido"
+                    aria-required="true" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-surface-700 mb-1">Email</label>
-                    <input value={guestForm.email} onChange={e => setGuestForm({ ...guestForm, email: e.target.value })}
+                    <label htmlFor="new-guest-email" className="block text-xs font-medium text-surface-700 mb-1">Email</label>
+                    <input id="new-guest-email" value={guestForm.email} onChange={e => setGuestForm({ ...guestForm, email: e.target.value })}
                       className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
                       placeholder="email@ejemplo.com" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-surface-700 mb-1">Teléfono</label>
-                    <input value={guestForm.phone} onChange={e => setGuestForm({ ...guestForm, phone: e.target.value })}
+                    <label htmlFor="new-guest-phone" className="block text-xs font-medium text-surface-700 mb-1">Teléfono</label>
+                    <input id="new-guest-phone" value={guestForm.phone} onChange={e => setGuestForm({ ...guestForm, phone: e.target.value })}
                       className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
                       placeholder="+34 600 000 000" />
                   </div>
                 </div>
                 <button onClick={handleCreateNewGuest} disabled={createGuest.isPending}
-                  className="w-full py-2.5 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+                  className="w-full py-2.5 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  aria-disabled={createGuest.isPending}
+                >
                   {createGuest.isPending ? 'Creando...' : 'Continuar'}
                 </button>
               </div>
@@ -283,15 +290,16 @@ export default function NewReservation() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-surface-700 mb-1.5">Adultos *</label>
-                <select value={adults} onChange={e => setAdults(parseInt(e.target.value))}
-                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow">
+                <label htmlFor="adults" className="block text-xs font-medium text-surface-700 mb-1.5">Adultos *</label>
+                <select id="adults" value={adults} onChange={e => setAdults(parseInt(e.target.value))}
+                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+                  aria-required="true">
                   {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-surface-700 mb-1.5">Niños</label>
-                <select value={children} onChange={e => setChildren(parseInt(e.target.value))}
+                <label htmlFor="children" className="block text-xs font-medium text-surface-700 mb-1.5">Niños</label>
+                <select id="children" value={children} onChange={e => setChildren(parseInt(e.target.value))}
                   className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow">
                   {[0, 1, 2, 3, 4].map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
@@ -299,8 +307,8 @@ export default function NewReservation() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-surface-700 mb-1.5">Solicitudes especiales</label>
-              <textarea value={specialRequests} onChange={e => setSpecialRequests(e.target.value)} rows="3"
+              <label htmlFor="special-requests" className="block text-xs font-medium text-surface-700 mb-1.5">Solicitudes especiales</label>
+              <textarea id="special-requests" value={specialRequests} onChange={e => setSpecialRequests(e.target.value)} rows="3"
                 placeholder="Alergias, preferencias de habitación, hora de llegada..."
                 className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow" />
             </div>
@@ -322,7 +330,9 @@ export default function NewReservation() {
             </div>
 
             <button onClick={handleSubmit} disabled={createReservation.isPending}
-              className="w-full mt-5 py-3 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2">
+              className="w-full mt-5 py-3 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+              aria-disabled={createReservation.isPending}
+            >
               {createReservation.isPending ? (
                 'Creando reserva...'
               ) : (

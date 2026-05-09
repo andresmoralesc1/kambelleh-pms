@@ -61,7 +61,7 @@ router.get('/:id', authenticate, async (req, res, next) => {
 });
 
 // POST /api/guests
-router.post('/', authenticate, async (req, res, next) => {
+router.post('/', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, res, next) => {
   try {
     const { name, email, phone, documentType, documentNumber, nationality, birthDate, notes } = req.body;
 
@@ -78,7 +78,7 @@ router.post('/', authenticate, async (req, res, next) => {
 });
 
 // PUT /api/guests/:id
-router.put('/:id', authenticate, async (req, res, next) => {
+router.put('/:id', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, res, next) => {
   try {
     const { name, email, phone, documentType, documentNumber, nationality, birthDate, notes } = req.body;
 

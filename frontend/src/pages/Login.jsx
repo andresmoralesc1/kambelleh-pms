@@ -49,6 +49,9 @@ export default function Login() {
                 placeholder="admin@kambelleh.com"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-surface-300 bg-white text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow text-sm"
                 required
+                aria-required="true"
+                aria-describedby={error ? 'login-error' : undefined}
+                autoComplete="email"
               />
             </div>
 
@@ -62,11 +65,14 @@ export default function Login() {
                   placeholder="••••••••"
                   className="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-surface-300 bg-white text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow text-sm"
                   required
+                  aria-required="true"
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-500 hover:text-surface-700 transition-colors"
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -74,7 +80,7 @@ export default function Login() {
             </div>
 
             {error && (
-              <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+              <div id="login-error" className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm" role="alert">
                 {error}
               </div>
             )}
@@ -83,6 +89,7 @@ export default function Login() {
               type="submit"
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium text-sm transition-colors disabled:opacity-50"
+              aria-disabled={loading}
             >
               {loading ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

@@ -23,6 +23,10 @@ export default function Layout() {
 
   return (
     <div className="flex h-screen bg-surface-50">
+      {/* Skip link for keyboard navigation */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium">
+        Saltar al contenido principal
+      </a>
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -32,7 +36,7 @@ export default function Layout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`
+      <aside aria-label="Navegación principal" className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-surface-200
         flex flex-col transform transition-transform duration-200 ease-in-out
         lg:relative lg:translate-x-0 lg:z-auto
@@ -53,6 +57,7 @@ export default function Layout() {
           <button
             onClick={() => setSidebarOpen(false)}
             className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-600 lg:hidden"
+            aria-label="Cerrar menú de navegación"
           >
             <X className="w-5 h-5" />
           </button>
@@ -65,6 +70,7 @@ export default function Layout() {
               key={to}
               to={to}
               onClick={() => setSidebarOpen(false)}
+              aria-current={({ isActive }) => isActive ? 'page' : undefined}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive
@@ -92,7 +98,7 @@ export default function Layout() {
             <button
               onClick={handleLogout}
               className="p-2 rounded-xl hover:bg-red-50 text-surface-500 hover:text-red-600 transition-colors"
-              title="Cerrar sesión"
+              aria-label="Cerrar sesión"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -107,6 +113,7 @@ export default function Layout() {
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 rounded-xl hover:bg-surface-100 text-surface-600"
+            aria-label="Abrir menú de navegación"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -119,7 +126,7 @@ export default function Layout() {
         </div>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto">
+        <main id="main-content" className="flex-1 overflow-y-auto" tabIndex="-1">
           <Outlet />
         </main>
       </div>

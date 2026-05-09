@@ -42,7 +42,7 @@ router.get('/stats', authenticate, async (req, res, next) => {
       orderBy: { checkOut: 'asc' },
     });
 
-    // Revenue this month
+    // Revenue this month - use indexed query
     const revenueResult = await prisma.payment.aggregate({
       where: {
         status: 'COMPLETED',
@@ -51,12 +51,12 @@ router.get('/stats', authenticate, async (req, res, next) => {
       _sum: { amount: true },
     });
 
-    // Pending reservations count
+    // Pending reservations count - use indexed query
     const pendingReservations = await prisma.reservation.count({
       where: { status: { in: ['PENDING', 'CONFIRMED'] } },
     });
 
-    // Next 5 upcoming arrivals
+    // Next 5 upcoming arrivals - use indexed query
     const upcomingArrivals = await prisma.reservation.findMany({
       where: {
         checkIn: { gt: today },
@@ -66,6 +66,8 @@ router.get('/stats', authenticate, async (req, res, next) => {
       include: { guest: { select: { name: true } }, room: { select: { number: true } } },
       orderBy: { checkIn: 'asc' },
     });
+
+    // Total rooms - already uses count with no filter (efficient)
 
     res.json({
       stats: {

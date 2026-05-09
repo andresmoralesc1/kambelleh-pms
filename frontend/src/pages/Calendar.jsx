@@ -71,34 +71,42 @@ export default function Calendar() {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-            className="p-2 rounded-xl hover:bg-surface-100 text-surface-500 transition-colors">
+            className="p-2 rounded-xl hover:bg-surface-100 text-surface-500 transition-colors"
+            aria-label="Mes anterior"
+          >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button onClick={() => setCurrentMonth(new Date())}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-200 hover:bg-surface-300 text-surface-600 transition-colors">
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-200 hover:bg-surface-300 text-surface-600 transition-colors"
+            aria-label="Ir a hoy"
+          >
             Hoy
           </button>
           <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-            className="p-2 rounded-xl hover:bg-surface-100 text-surface-500 transition-colors">
+            className="p-2 rounded-xl hover:bg-surface-100 text-surface-500 transition-colors"
+            aria-label="Mes siguiente"
+          >
             <ChevronRight className="w-5 h-5" />
           </button>
-          <Link to="/reservations/new"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors ml-2">
+<Link to="/reservations/new"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors ml-2"
+            aria-label="Crear nueva reserva"
+          >
             <Plus className="w-4 h-4" /> Nueva reserva
           </Link>
         </div>
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-xs text-surface-600">
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-emerald-500" /> Entrada
+      <div className="flex items-center gap-4 text-xs text-surface-600" role="list" aria-label="Leyenda del calendario">
+        <div className="flex items-center gap-1.5" role="listitem">
+          <div className="w-3 h-3 rounded-sm bg-emerald-500" aria-hidden="true" /> Entrada
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-amber-500" /> Salida
+        <div className="flex items-center gap-1.5" role="listitem">
+          <div className="w-3 h-3 rounded-sm bg-amber-500" aria-hidden="true" /> Salida
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-surface-400" /> Bloqueado
+        <div className="flex items-center gap-1.5" role="listitem">
+          <div className="w-3 h-3 rounded-sm bg-surface-400" aria-hidden="true" /> Bloqueado
         </div>
       </div>
 
@@ -108,16 +116,16 @@ export default function Calendar() {
       ) : (
         <div className="bg-white rounded-2xl border border-surface-200 overflow-hidden">
           {/* Day headers */}
-          <div className="grid grid-cols-7 border-b border-surface-200">
+          <div className="grid grid-cols-7 border-b border-surface-200" role="row">
             {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-              <div key={d} className="py-2.5 text-center text-xs font-semibold text-surface-500 uppercase tracking-wide">
+              <div key={d} className="py-2.5 text-center text-xs font-semibold text-surface-500 uppercase tracking-wide" role="columnheader">
                 {d}
               </div>
             ))}
           </div>
 
           {/* Days */}
-          <div className="grid grid-cols-7">
+          <div className="grid grid-cols-7" role="grid" aria-label={`Calendario de ${format(currentMonth, 'MMMM yyyy', { locale: es })}`}>
             {days.map((day, idx) => {
               const dayReservations = getResForDay(day);
               const dayBlocked = getBlockedForDay(day);
@@ -126,7 +134,10 @@ export default function Calendar() {
 
               return (
                 <div key={idx}
-                  className={`min-h-[100px] border-b border-r border-surface-100 p-2 ${!inMonth ? 'bg-surface-50' : ''}`}>
+                  className={`min-h-[100px] border-b border-r border-surface-100 p-2 ${!inMonth ? 'bg-surface-50' : ''}`}
+                  role="gridcell"
+                  aria-label={format(day, "EEEE, d 'de' MMMM", { locale: es })}
+                >
                   <div className={`w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium mb-1 ${
                     isCurrentDay ? 'bg-primary-600 text-white' : inMonth ? 'text-surface-700' : 'text-surface-300'
                   }`}>
@@ -141,7 +152,9 @@ export default function Calendar() {
                           className={`text-xs px-1.5 py-0.5 rounded truncate text-white ${
                             isCheckIn ? 'bg-emerald-500' : isCheckOut ? 'bg-amber-500' : 'bg-primary-500'
                           }`}
-                          title={`${r.guest.name} — Hab. ${r.room.number}`}>
+                          title={`${r.guest.name} — Hab. ${r.room.number}`}
+                          aria-label={`${r.guest.name} - Habitación ${r.room.number}${isCheckIn ? ' - Entrada' : ''}${isCheckOut ? ' - Salida' : ''}`}
+                        >
                           {isCheckIn && '→ '}{isCheckOut && '← '}{r.guest.name}
                         </div>
                       );
