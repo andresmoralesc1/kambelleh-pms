@@ -51,7 +51,7 @@ router.post('/', authenticate, authorize('ADMIN'), async (req, res, next) => {
     const { number, name, type, capacity, pricePerNight, amenities, floor } = req.body;
 
     if (!number || !name || !capacity || !pricePerNight) {
-      return res.status(400).json({ error: 'number, name, capacity and pricePerNight are required' });
+      return res.status(400).json({ error: 'Número, nombre, capacidad y precio por noche son obligatorios' });
     }
 
     const room = await prisma.room.create({
@@ -89,7 +89,7 @@ router.delete('/:id', authenticate, authorize('ADMIN'), async (req, res, next) =
     });
 
     if (active) {
-      return res.status(409).json({ error: 'Cannot delete room with active reservations' });
+      return res.status(409).json({ error: 'No se puede eliminar: tiene reservas activas' });
     }
 
     await prisma.room.delete({ where: { id: req.params.id } });
@@ -103,7 +103,7 @@ router.delete('/:id', authenticate, authorize('ADMIN'), async (req, res, next) =
 router.get('/:id/availability', authenticate, async (req, res, next) => {
   try {
     const { from, to } = req.query;
-    if (!from || !to) return res.status(400).json({ error: 'from and to dates are required' });
+    if (!from || !to) return res.status(400).json({ error: 'Las fechas from y to son obligatorias' });
 
     const fromDate = new Date(from);
     const toDate = new Date(to);

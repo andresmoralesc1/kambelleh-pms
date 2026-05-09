@@ -65,7 +65,7 @@ router.post('/', authenticate, async (req, res, next) => {
   try {
     const { name, email, phone, documentType, documentNumber, nationality, birthDate, notes } = req.body;
 
-    if (!name) return res.status(400).json({ error: 'name is required' });
+    if (!name) return res.status(400).json({ error: 'El nombre es obligatorio' });
 
     const guest = await prisma.guest.create({
       data: { name, email, phone, documentType, documentNumber, nationality, birthDate, notes },

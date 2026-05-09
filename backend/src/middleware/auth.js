@@ -23,19 +23,19 @@ export async function authenticate(req, res, next) {
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired' });
+      return res.status(401).json({ error: 'La sesión ha expirado' });
     }
-    return res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({ error: 'Token inválido' });
   }
 }
 
 export function authorize(...roles) {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({ error: 'Not authenticated' });
+      return res.status(401).json({ error: 'No autenticado' });
     }
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ error: 'Insufficient permissions' });
+      return res.status(403).json({ error: 'No tienes permisos para esta acción' });
     }
     next();
   };

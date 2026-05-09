@@ -62,14 +62,14 @@ router.post('/', authenticate, async (req, res, next) => {
     const { guestId, roomId, checkIn, checkOut, adults = 1, children = 0, specialRequests } = req.body;
 
     if (!guestId || !roomId || !checkIn || !checkOut) {
-      return res.status(400).json({ error: 'guestId, roomId, checkIn and checkOut are required' });
+      return res.status(400).json({ error: 'Huésped, habitación, fecha de entrada y salida son obligatorios' });
     }
 
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
 
     if (checkOutDate <= checkInDate) {
-      return res.status(400).json({ error: 'checkOut must be after checkIn' });
+      return res.status(400).json({ error: 'La fecha de salida debe ser posterior a la de entrada' });
     }
 
     // Check availability
@@ -85,12 +85,12 @@ router.post('/', authenticate, async (req, res, next) => {
     });
 
     if (overlap) {
-      return res.status(409).json({ error: 'Room is not available for these dates' });
+      return res.status(409).json({ error: 'La habitación no está disponible para estas fechas' });
     }
 
     // Calculate total
     const room = await prisma.room.findUnique({ where: { id: roomId } });
-    if (!room) return res.status(404).json({ error: 'Room not found' });
+    if (!room) return res.status(404).json({ error: 'Habitación no encontrada' });
 
     const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
     const totalAmount = Number(room.pricePerNight) * nights;
@@ -176,11 +176,11 @@ router.patch('/:id/status', authenticate, async (req, res, next) => {
     const { status } = req.body;
     const validStatuses = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED'];
     if (!validStatuses.includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' });
+      return res.status(400).json({ error: 'Estado inválido' });
     }
 
     const reservation = await prisma.reservation.findUnique({ where: { id: req.params.id } });
-    if (!reservation) return res.status(404).json({ error: 'Reservation not found' });
+    if (!reservation) return res.status(404).json({ error: 'Reserva no encontrada' });
 
     // Update room status based on reservation status
     if (status === 'CHECKED_IN') {
@@ -208,7 +208,7 @@ router.delete('/:id', authenticate, authorize('ADMIN'), async (req, res, next) =
     if (!reservation) return res.status(404).json({ error: 'Reservation not found' });
 
     if (['CHECKED_IN', 'CHECKED_OUT'].includes(reservation.status)) {
-      return res.status(409).json({ error: 'Cannot delete checked-in or checked-out reservations' });
+      return res.status(409).json({ error: 'No se puede eliminar una reserva con estado check-in o check-out' });
     }
 
     await prisma.reservation.delete({ where: { id: req.params.id } });

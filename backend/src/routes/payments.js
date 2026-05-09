@@ -16,9 +16,9 @@ router.post('/create-intent', authenticate, async (req, res, next) => {
       include: { guest: true },
     });
 
-    if (!reservation) return res.status(404).json({ error: 'Reservation not found' });
+    if (!reservation) return res.status(404).json({ error: 'Reserva no encontrada' });
     if (reservation.stripePaymentId) {
-      return res.status(409).json({ error: 'Payment already created for this reservation' });
+      return res.status(409).json({ error: 'Esta reserva ya tiene un pago asociado' });
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -42,7 +42,7 @@ router.post('/confirm', authenticate, async (req, res, next) => {
     const { reservationId, paymentIntentId } = req.body;
 
     const reservation = await prisma.reservation.findUnique({ where: { id: reservationId } });
-    if (!reservation) return res.status(404).json({ error: 'Reservation not found' });
+    if (!reservation) return res.status(404).json({ error: 'Reserva no encontrada' });
 
     // Create payment record
     const payment = await prisma.payment.create({
@@ -92,9 +92,9 @@ router.post('/refund', authenticate, authorize('ADMIN'), async (req, res, next) 
       include: { reservation: true },
     });
 
-    if (!payment) return res.status(404).json({ error: 'Payment not found' });
+    if (!payment) return res.status(404).json({ error: 'Pago no encontrado' });
     if (payment.status !== 'COMPLETED') {
-      return res.status(409).json({ error: 'Payment is not completed' });
+      return res.status(409).json({ error: 'El pago no está completado' });
     }
 
     await stripe.refunds.create({ payment_intent: payment.stripeChargeId });

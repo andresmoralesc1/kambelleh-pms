@@ -11,12 +11,12 @@ router.post('/register', async (req, res, next) => {
     const { email, password, name, role = 'RECEPTIONIST' } = req.body;
 
     if (!email || !password || !name) {
-      return res.status(400).json({ error: 'Email, password and name are required' });
+      return res.status(400).json({ error: 'El email, la contraseña y el nombre son obligatorios' });
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return res.status(409).json({ error: 'Email already registered' });
+      return res.status(409).json({ error: 'Este email ya está registrado' });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -40,17 +40,17 @@ router.post('/login', async (req, res, next) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ error: 'El email y la contraseña son obligatorios' });
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Credenciales incorrectas' });
     }
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Credenciales incorrectas' });
     }
 
     const tokens = generateTokens(user.id);

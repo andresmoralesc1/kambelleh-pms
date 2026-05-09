@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Calendar, DoorOpen, BookCheck, Users, LogOut, Bed } from 'lucide-react';
+import { LayoutDashboard, Calendar, DoorOpen, BookCheck, Users, LogOut, Bed, Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
@@ -13,6 +14,7 @@ const navItems = [
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -21,10 +23,23 @@ export default function Layout() {
 
   return (
     <div className="flex h-screen bg-surface-50">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-surface-200 flex flex-col">
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-surface-200
+        flex flex-col transform transition-transform duration-200 ease-in-out
+        lg:relative lg:translate-x-0 lg:z-auto
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
         {/* Logo */}
-        <div className="p-5 border-b border-surface-200">
+        <div className="p-5 border-b border-surface-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
               <Bed className="w-5 h-5 text-white" />
@@ -34,16 +49,24 @@ export default function Layout() {
               <p className="text-xs text-surface-500">PMS</p>
             </div>
           </div>
+          {/* Mobile close button */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-600 lg:hidden"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
+              onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-primary-50 text-primary-700'
                     : 'text-surface-600 hover:bg-surface-100'
@@ -59,24 +82,47 @@ export default function Layout() {
         {/* User */}
         <div className="p-4 border-t border-surface-200">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-surface-200 flex items-center justify-center text-sm font-semibold text-surface-700">
-              {user?.name?.charAt(0)?.toUpperCase()}
+            <div className="w-9 h-9 rounded-full bg-surface-100 flex items-center justify-center text-sm font-semibold text-surface-600 flex-shrink-0">
+              {user?.name?.charAt(0)?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-surface-900 truncate">{user?.name}</p>
-              <p className="text-xs text-surface-500 capitalize">{user?.role?.toLowerCase()}</p>
+              <p className="text-xs text-surface-500 capitalize">{user?.role?.toLowerCase() || 'Usuario'}</p>
             </div>
-            <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-400 transition-colors" title="Cerrar sesión">
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-xl hover:bg-red-50 text-surface-500 hover:text-red-600 transition-colors"
+              title="Cerrar sesión"
+            >
               <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 overflow-y-auto">
-        <Outlet />
-      </main>
+      {/* Main area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile header */}
+        <div className="lg:hidden flex items-center gap-3 p-4 bg-white border-b border-surface-200">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-xl hover:bg-surface-100 text-surface-600"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
+              <Bed className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-bold text-surface-900">Kambelleh</span>
+          </div>
+        </div>
+
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
