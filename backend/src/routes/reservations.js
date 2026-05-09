@@ -39,6 +39,11 @@ router.get('/', authenticate, async (req, res, next) => {
 // GET /api/reservations/:id
 router.get('/:id', authenticate, async (req, res, next) => {
   try {
+    // IDOR fix: users can only view their own reservations unless ADMIN
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'RECEPTIONIST') {
+      return res.status(403).json({ error: 'No tienes permisos para ver esta reserva' });
+    }
+
     const reservation = await prisma.reservation.findUnique({
       where: { id: req.params.id },
       include: {
@@ -67,48 +72,62 @@ router.post('/', authenticate, async (req, res, next) => {
 
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Past date validation
+    if (checkInDate < today) {
+      return res.status(400).json({ error: 'La fecha de entrada no puede ser en el pasado' });
+    }
 
     if (checkOutDate <= checkInDate) {
       return res.status(400).json({ error: 'La fecha de salida debe ser posterior a la de entrada' });
     }
 
-    // Check availability
-    const overlap = await prisma.reservation.findFirst({
-      where: {
-        roomId,
-        status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
-        AND: [
-          { checkIn: { lt: checkOutDate } },
-          { checkOut: { gt: checkInDate } },
-        ],
-      },
-    });
+    // Race condition fix: use transaction for atomic availability check + booking
+    const reservation = await prisma.$transaction(async (tx) => {
+      // Check availability within transaction
+      const overlap = await tx.reservation.findFirst({
+        where: {
+          roomId,
+          status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
+          AND: [
+            { checkIn: { lt: checkOutDate } },
+            { checkOut: { gt: checkInDate } },
+          ],
+        },
+      });
 
-    if (overlap) {
-      return res.status(409).json({ error: 'La habitación no está disponible para estas fechas' });
-    }
+      if (overlap) {
+        throw Object.assign(new Error('La habitación no está disponible para estas fechas'), { status: 409 });
+      }
 
-    // Calculate total
-    const room = await prisma.room.findUnique({ where: { id: roomId } });
-    if (!room) return res.status(404).json({ error: 'Habitación no encontrada' });
+      // Calculate total
+      const room = await tx.room.findUnique({ where: { id: roomId } });
+      if (!room) {
+        throw Object.assign(new Error('Habitación no encontrada'), { status: 404 });
+      }
 
-    const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
-    const totalAmount = Number(room.pricePerNight) * nights;
+      const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+      const totalAmount = Number(room.pricePerNight) * nights;
 
-    const reservation = await prisma.reservation.create({
-      data: {
-        guestId,
-        roomId,
-        checkIn: checkInDate,
-        checkOut: checkOutDate,
-        totalAmount,
-        adults,
-        children,
-        specialRequests,
-        createdById: req.user.id,
-        status: 'PENDING',
-      },
-      include: { guest: true, room: true },
+      const created = await tx.reservation.create({
+        data: {
+          guestId,
+          roomId,
+          checkIn: checkInDate,
+          checkOut: checkOutDate,
+          totalAmount,
+          adults,
+          children,
+          specialRequests,
+          createdById: req.user.id,
+          status: 'PENDING',
+        },
+        include: { guest: true, room: true },
+      });
+
+      return created;
     });
 
     res.status(201).json({ reservation });
@@ -122,37 +141,56 @@ router.put('/:id', authenticate, async (req, res, next) => {
   try {
     const { checkIn, checkOut, adults, children, specialRequests } = req.body;
 
-    // If changing dates, check availability
+    // Fetch reservation for authorization
+    const current = await prisma.reservation.findUnique({ where: { id: req.params.id } });
+    if (!current) return res.status(404).json({ error: 'Reserva no encontrada' });
+
+    // IDOR: only ADMIN/RECEPTIONIST or the creator can modify
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'RECEPTIONIST' && current.createdById !== req.user.id) {
+      return res.status(403).json({ error: 'No tienes permisos para modificar esta reserva' });
+    }
+
+    // If changing dates, check availability atomically
     if (checkIn || checkOut) {
-      const current = await prisma.reservation.findUnique({ where: { id: req.params.id } });
       const newCheckIn = checkIn ? new Date(checkIn) : current.checkIn;
       const newCheckOut = checkOut ? new Date(checkOut) : current.checkOut;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-      const overlap = await prisma.reservation.findFirst({
-        where: {
-          roomId: current.roomId,
-          id: { not: req.params.id },
-          status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
-          AND: [
-            { checkIn: { lt: newCheckOut } },
-            { checkOut: { gt: newCheckIn } },
-          ],
-        },
-      });
-
-      if (overlap) {
-        return res.status(409).json({ error: 'Room is not available for these dates' });
+      if (newCheckIn < today) {
+        return res.status(400).json({ error: 'La fecha de entrada no puede ser en el pasado' });
+      }
+      if (newCheckOut <= newCheckIn) {
+        return res.status(400).json({ error: 'La fecha de salida debe ser posterior a la de entrada' });
       }
 
-      // Recalculate total
-      const room = await prisma.room.findUnique({ where: { id: current.roomId } });
-      const nights = Math.ceil((newCheckOut - newCheckIn) / (1000 * 60 * 60 * 24));
-      const totalAmount = Number(room.pricePerNight) * nights;
+      // Atomic transaction for date change + availability check
+      const reservation = await prisma.$transaction(async (tx) => {
+        const overlap = await tx.reservation.findFirst({
+          where: {
+            roomId: current.roomId,
+            id: { not: req.params.id },
+            status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] },
+            AND: [
+              { checkIn: { lt: newCheckOut } },
+              { checkOut: { gt: newCheckIn } },
+            ],
+          },
+        });
 
-      const reservation = await prisma.reservation.update({
-        where: { id: req.params.id },
-        data: { checkIn: newCheckIn, checkOut: newCheckOut, adults, children, specialRequests, totalAmount },
-        include: { guest: true, room: true },
+        if (overlap) {
+          throw Object.assign(new Error('La habitación no está disponible para estas fechas'), { status: 409 });
+        }
+
+        const room = await tx.room.findUnique({ where: { id: current.roomId } });
+        const nights = Math.ceil((newCheckOut - newCheckIn) / (1000 * 60 * 60 * 24));
+        const totalAmount = Number(room.pricePerNight) * nights;
+
+        return tx.reservation.update({
+          where: { id: req.params.id },
+          data: { checkIn: newCheckIn, checkOut: newCheckOut, adults, children, specialRequests, totalAmount },
+          include: { guest: true, room: true },
+        });
       });
 
       return res.json({ reservation });
@@ -181,6 +219,11 @@ router.patch('/:id/status', authenticate, async (req, res, next) => {
 
     const reservation = await prisma.reservation.findUnique({ where: { id: req.params.id } });
     if (!reservation) return res.status(404).json({ error: 'Reserva no encontrada' });
+
+    // IDOR: only ADMIN/RECEPTIONIST or the creator can change status
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'RECEPTIONIST' && reservation.createdById !== req.user.id) {
+      return res.status(403).json({ error: 'No tienes permisos para cambiar el estado de esta reserva' });
+    }
 
     // Update room status based on reservation status
     if (status === 'CHECKED_IN') {

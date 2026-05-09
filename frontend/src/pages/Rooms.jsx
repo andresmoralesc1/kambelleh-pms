@@ -272,7 +272,7 @@ export default function Rooms() {
         </div>
       )}
 
-      {showModal && <RoomModal room={null} onClose={() => setShowModal(false)} />}
+      {showModal && <RoomModal room={showModal === true ? null : showModal} onClose={() => setShowModal(false)} />}
     </div>
   );
 }

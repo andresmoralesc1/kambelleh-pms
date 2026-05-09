@@ -30,27 +30,49 @@ async function stripeWebhook(req, res) {
       const { reservationId } = paymentIntent.metadata;
 
       if (reservationId) {
-        await prisma.payment.create({
-          data: {
-            reservationId,
-            amount: paymentIntent.amount / 100,
-            currency: paymentIntent.currency,
-            status: 'COMPLETED',
-            stripeChargeId: paymentIntent.id,
-            method: 'card',
-          },
+        // Idempotency: verificar si ya existe el pago
+        const existingPayment = await prisma.payment.findFirst({
+          where: { stripeChargeId: paymentIntent.id },
         });
+        if (existingPayment) {
+          // Ya procesado, responder OK
+          break;
+        }
 
-        await prisma.reservation.update({
-          where: { id: reservationId },
-          data: { status: 'CONFIRMED', stripePaymentId: paymentIntent.id },
-        });
+        // Crear pago + actualizar reserva atomicamente
+        await prisma.$transaction([
+          prisma.payment.create({
+            data: {
+              reservationId,
+              amount: paymentIntent.amount / 100,
+              currency: paymentIntent.currency,
+              status: 'COMPLETED',
+              stripeChargeId: paymentIntent.id,
+              method: 'card',
+            },
+          }),
+          prisma.reservation.update({
+            where: { id: reservationId },
+            data: { status: 'CONFIRMED', stripePaymentId: paymentIntent.id },
+          }),
+        ]);
+      } else {
+        console.warn('Webhook: payment_intent.succeeded sin reservationId:', paymentIntent.id);
       }
       break;
     }
     case 'payment_intent.payment_failed': {
       const paymentIntent = event.data.object;
+      const { reservationId } = paymentIntent.metadata;
       console.log('Payment failed:', paymentIntent.id);
+      if (reservationId) {
+        await prisma.reservation.update({
+          where: { id: reservationId },
+          data: { status: 'CANCELLED' },
+        }).catch(() => {
+          // Reservation might not exist or already be in a final state
+        });
+      }
       break;
     }
   }

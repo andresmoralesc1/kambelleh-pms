@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database.js';
+import { randomBytes } from 'crypto';
 
 export async function authenticate(req, res, next) {
   try {
@@ -43,8 +44,30 @@ export function authorize(...roles) {
 
 export function generateTokens(userId) {
   const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  const refreshToken = jwt.sign({ userId, tokenId: randomBytes(16).toString('hex') }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
   return { accessToken, refreshToken };
+}
+
+export async function storeRefreshToken(userId, refreshToken, expiresAt) {
+  // Rotate: delete old tokens for user, store new one
+  await prisma.refreshToken.deleteMany({ where: { userId } });
+  await prisma.refreshToken.create({
+    data: { token: refreshToken, userId, expiresAt },
+  });
+}
+
+export async function validateRefreshToken(token) {
+  const stored = await prisma.refreshToken.findUnique({ where: { token } });
+  if (!stored) return null;
+  if (new Date() > stored.expiresAt) {
+    await prisma.refreshToken.delete({ where: { id: stored.id } });
+    return null;
+  }
+  return stored;
+}
+
+export async function invalidateRefreshToken(token) {
+  await prisma.refreshToken.deleteMany({ where: { token } });
 }
 
 export function setAuthCookies(res, tokens) {

@@ -94,9 +94,9 @@ function GuestModal({ guest, onClose }) {
               className="flex-1 px-4 py-2.5 rounded-xl border border-surface-300 text-sm font-medium text-surface-600 hover:bg-surface-50 transition-colors">
               Cancelar
             </button>
-            <button type="submit"
-              className="flex-1 px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors">
-              {isEditing ? 'Guardar' : 'Crear'}
+            <button type="submit" disabled={createGuest.isPending || updateGuest.isPending}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors">
+              {(createGuest.isPending || updateGuest.isPending) ? 'Guardando...' : isEditing ? 'Guardar' : 'Crear'}
             </button>
           </div>
         </form>

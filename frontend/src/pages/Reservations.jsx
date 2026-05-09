@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale/es';;
+import { es } from 'date-fns/locale/es';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Eye, X, CheckCircle, XCircle, Clock, AlertCircle, CalendarDays } from 'lucide-react';
 import { useReservations, useUpdateReservationStatus } from '../hooks/useQueries';

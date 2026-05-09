@@ -134,7 +134,7 @@ export default function Dashboard() {
           {stats?.departuresToday > 0 ? (
             <div>
               {stats.departures?.slice(0, 5).map((r) => (
-                <ArrivalRow key={r.id} guest={r.guest} room={r.room} checkIn={r.checkIn} />
+                <ArrivalRow key={r.id} guest={r.guest} room={r.room} checkIn={r.checkOut} />
               ))}
             </div>
           ) : (
