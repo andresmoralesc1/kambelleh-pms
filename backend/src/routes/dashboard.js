@@ -131,13 +131,12 @@ router.get('/analytics', authenticate, async (req, res, next) => {
     const monthlyData = await prisma.$queryRaw`
       SELECT
         DATE_TRUNC('month', r."checkIn") as month,
-        COUNT(*) as reservation_count,
-        COUNT(*) FILTER (WHERE r.status = 'CANCELLED') as cancelled_count,
-        SUM(r."totalAmount") FILTER (WHERE p.status = 'COMPLETED') as revenue,
-        AVG(r."totalAmount") FILTER (WHERE p.status = 'COMPLETED') as adr,
-        EXTRACT(DAY FROM r."checkIn" - r."createdAt") as lead_time
+        COUNT(*)::numeric as reservation_count,
+        COUNT(*) FILTER (WHERE r.status = 'CANCELLED')::numeric as cancelled_count,
+        SUM(p.amount) FILTER (WHERE p.status = 'COMPLETED')::numeric as revenue,
+        AVG(r.total_amount) FILTER (WHERE p.status = 'COMPLETED')::numeric as adr
       FROM reservations r
-      LEFT JOIN payments p ON p."reservationId" = r.id
+      LEFT JOIN payments p ON p.reservation_id = r.id
       WHERE r."checkIn" >= ${start} AND r."checkIn" <= ${end}
       GROUP BY DATE_TRUNC('month', r."checkIn")
       ORDER BY month ASC
@@ -152,11 +151,12 @@ router.get('/analytics', authenticate, async (req, res, next) => {
 
     // Top rooms by revenue
     const topRooms = await prisma.$queryRaw`
-      SELECT r."id", r.number, r.name, SUM(p.amount) as total_revenue, COUNT(*) as reservation_count
-      FROM reservations r
-      JOIN payments p ON p."reservationId" = r.id
-      WHERE p.status = 'COMPLETED' AND p."createdAt" >= ${start} AND p."createdAt" <= ${end}
-      GROUP BY r."id", r.number, r.name
+      SELECT room.id, room.number, room.name, COALESCE(SUM(p.amount)::numeric, 0) as total_revenue, COALESCE(COUNT(*), 0)::numeric as reservation_count
+      FROM rooms room
+      JOIN reservations r ON r.room_id = room.id
+      JOIN payments p ON p.reservation_id = r.id
+      WHERE p.status = 'COMPLETED' AND p.created_at >= ${start} AND p.created_at <= ${end}
+      GROUP BY room.id, room.number, room.name
       ORDER BY total_revenue DESC
       LIMIT 5
     `;
@@ -165,14 +165,14 @@ router.get('/analytics', authenticate, async (req, res, next) => {
     const leadTimeDistribution = await prisma.$queryRaw`
       SELECT
         CASE
-          WHEN EXTRACT(DAY FROM r."checkIn" - r."createdAt") < 7 THEN '0-6'
-          WHEN EXTRACT(DAY FROM r."checkIn" - r."createdAt") < 14 THEN '7-13'
-          WHEN EXTRACT(DAY FROM r."checkIn" - r."createdAt") < 30 THEN '14-29'
+          WHEN EXTRACT(DAY FROM r."checkIn" - r.created_at) < 7 THEN '0-6'
+          WHEN EXTRACT(DAY FROM r."checkIn" - r.created_at) < 14 THEN '7-13'
+          WHEN EXTRACT(DAY FROM r."checkIn" - r.created_at) < 30 THEN '14-29'
           ELSE '30+'
         END as bin,
-        COUNT(*) as count
+        COUNT(*)::numeric as count
       FROM reservations r
-      WHERE r."createdAt" IS NOT NULL AND r."checkIn" >= ${start}
+      WHERE r."checkIn" IS NOT NULL
       GROUP BY bin
       ORDER BY bin ASC
     `;

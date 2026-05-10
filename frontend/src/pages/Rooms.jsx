@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DoorOpen, Plus, Pencil, Trash2, Bed, Wifi, Wind, Coffee, Tv, Search } from 'lucide-react';
 import { useRooms, useCreateRoom, useDeleteRoom } from '../hooks/useQueries';
+import { formatCurrencyCompact } from '../utils/currency';
 
 const amenityIcons = { WiFi: Wifi, 'A/C': Wind, Desayuno: Coffee, TV: Tv };
 
@@ -257,7 +258,7 @@ export default function Rooms() {
 
                 {/* Footer */}
                 <div className="flex items-center justify-between pt-3 border-t border-surface-100">
-                  <span className="text-lg font-bold text-primary-600">€{Number(room.pricePerNight).toFixed(2)}</span>
+                  <span className="text-lg font-bold text-primary-600">{formatCurrencyCompact(room.pricePerNight)}</span>
                   <div className="flex gap-1">
                     <button onClick={() => setShowModal(room)}
                       aria-label={`Editar habitación ${room.number}`}

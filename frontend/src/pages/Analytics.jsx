@@ -7,9 +7,10 @@ import {
 import { TrendingUp, TrendingDown, DollarSign, Calendar, Bed, Clock } from 'lucide-react';
 import { getDashboardAnalytics } from '../api';
 import Layout from '../components/Layout';
+import { formatCurrencyCompact } from '../utils/currency';
 
-const fmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 });
-const fmtCompact = (n) => n >= 1000 ? `$${(n / 1000).toFixed(1)}k` : `$${n}`;
+const fmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 });
+const fmtCompact = (n) => formatCurrencyCompact(n);
 
 const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 const LEAD_BINS = ['0-6', '7-13', '14-29', '30+'];

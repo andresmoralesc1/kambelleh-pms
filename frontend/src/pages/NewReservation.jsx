@@ -6,6 +6,7 @@ import { ArrowLeft, Search, User, Calendar, Check, AlertCircle, DoorOpen, UserPl
 import { useRooms } from '../hooks/useQueries';
 import { useGuests } from '../hooks/useQueries';
 import { useCreateReservation, useCreateGuest } from '../hooks/useQueries';
+import { formatCurrencyCompact, formatCurrency } from '../utils/currency';
 
 const typeLabels = { PRIVATE: 'Privada', SHARED: 'Compartida', DORM: 'Dormitorio' };
 
@@ -174,7 +175,7 @@ export default function NewReservation() {
                       <p className="text-xs text-surface-500">{typeLabels[room.type] || room.type} · Capacidad {room.capacity}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-primary-600">€{Number(room.pricePerNight).toFixed(2)}</p>
+                      <p className="font-bold text-primary-600">{formatCurrencyCompact(room.pricePerNight)}</p>
                       <p className="text-xs text-surface-500">/ noche</p>
                     </div>
                   </button>
@@ -204,7 +205,7 @@ export default function NewReservation() {
                 <p className="text-xs text-surface-500">Habitación seleccionada</p>
                 <p className="font-semibold text-surface-900">#{selectedRoom.number} — {selectedRoom.name}</p>
               </div>
-              <p className="font-bold text-primary-600">€{Number(selectedRoom.pricePerNight).toFixed(2)}/noche</p>
+              <p className="font-bold text-primary-600">{formatCurrencyCompact(selectedRoom.pricePerNight)}/noche</p>
             </div>
 
             <div className="mb-4">
@@ -324,8 +325,8 @@ export default function NewReservation() {
               <div className="flex justify-between"><span className="text-surface-500">Check-out</span><span className="font-medium text-surface-700">{format(new Date(checkOut), 'dd MMM yyyy', { locale: es })}</span></div>
               <div className="flex justify-between"><span className="text-surface-500">Noches</span><span className="font-medium text-surface-700">{nights}</span></div>
               <div className="flex justify-between pt-3 border-t border-surface-200">
-                <span className="text-surface-600 font-medium">Total ({nights} noches × €{Number(selectedRoom?.pricePerNight).toFixed(2)})</span>
-                <span className="font-bold text-primary-600 text-xl">€{totalPrice.toFixed(2)}</span>
+                <span className="text-surface-600 font-medium">Total ({nights} noches × {formatCurrencyCompact(selectedRoom?.pricePerNight)})</span>
+                <span className="font-bold text-primary-600 text-xl">{formatCurrency(totalPrice)}</span>
               </div>
             </div>
 

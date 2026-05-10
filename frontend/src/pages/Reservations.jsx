@@ -4,6 +4,7 @@ import { es } from 'date-fns/locale/es';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Eye, X, CheckCircle, XCircle, Clock, AlertCircle, CalendarDays } from 'lucide-react';
 import { useReservations, useUpdateReservationStatus } from '../hooks/useQueries';
+import { formatCurrencyCompact } from '../utils/currency';
 
 const statusConfig = {
   PENDING: { label: 'Pendiente', bg: 'bg-amber-100', text: 'text-amber-700', icon: Clock },
@@ -90,7 +91,7 @@ function ReservationModal({ reservation, onClose }) {
             </div>
             <div>
               <p className="text-xs font-medium text-surface-500 mb-0.5">Total</p>
-              <p className="font-bold text-primary-600">€{Number(reservation.totalAmount).toFixed(2)}</p>
+              <p className="font-bold text-primary-600">{formatCurrencyCompact(reservation.totalAmount)}</p>
             </div>
           </div>
           {reservation.specialRequests && (
@@ -229,7 +230,7 @@ export default function Reservations() {
                       </p>
                     </td>
                     <td className="px-5 py-4">
-                      <p className="font-semibold text-primary-600 text-sm">€{Number(r.totalAmount).toFixed(2)}</p>
+                      <p className="font-semibold text-primary-600 text-sm">{formatCurrencyCompact(r.totalAmount)}</p>
                     </td>
                     <td className="px-5 py-4"><StatusBadge status={r.status} /></td>
                     <td className="px-5 py-4 text-right">

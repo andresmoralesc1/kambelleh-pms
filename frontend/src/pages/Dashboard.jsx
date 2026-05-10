@@ -3,6 +3,7 @@ import { es } from 'date-fns/locale/es';
 import { Bed, TrendingUp, Users, CalendarDays, ArrowRight, Sunrise, Sun, Moon } from 'lucide-react';
 import { useDashboardStats } from '../hooks/useQueries';
 import { Link } from 'react-router-dom';
+import { formatCurrencyCompact } from '../utils/currency';
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -96,7 +97,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={Bed} label="Ocupación" value={`${stats?.occupancyRate || 0}%`}
           sub={`${stats?.occupiedToday || 0} de ${stats?.totalRooms || 0} habitaciones`} color="primary" />
-        <StatCard icon={TrendingUp} label="Ingresos del mes" value={`€${(stats?.revenueThisMonth || 0).toFixed(2)}`}
+        <StatCard icon={TrendingUp} label="Ingresos del mes" value={formatCurrencyCompact(stats?.revenueThisMonth || 0)}
           sub="Completados" color="green" />
         <StatCard icon={CalendarDays} label="Llegadas hoy" value={stats?.arrivalsToday || 0}
           sub="Reservas confirmadas" color="blue" />
