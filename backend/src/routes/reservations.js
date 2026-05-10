@@ -2,6 +2,7 @@ import express from 'express';
 import { startOfDay, endOfDay, addDays } from 'date-fns';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { sendReservationConfirmation } from '../services/email.js';
 
 const router = express.Router();
 
@@ -131,6 +132,9 @@ router.post('/', authenticate, async (req, res, next) => {
     });
 
     res.status(201).json({ reservation });
+
+    // Enviar email de confirmación (no-bloqueante)
+    sendReservationConfirmation(reservation.guest, reservation, reservation.room);
   } catch (err) {
     next(err);
   }

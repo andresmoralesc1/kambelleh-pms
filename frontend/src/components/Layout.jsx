@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Calendar, DoorOpen, BookCheck, Users, LogOut, Bed, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Calendar, DoorOpen, BookCheck, Users, LogOut, Bed, Menu, X, Sun, Moon, BarChart2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/analytics', icon: BarChart2, label: 'Analíticas' },
   { to: '/calendar', icon: Calendar, label: 'Calendario' },
   { to: '/rooms', icon: DoorOpen, label: 'Habitaciones' },
   { to: '/reservations', icon: BookCheck, label: 'Reservas' },
@@ -13,6 +15,7 @@ const navItems = [
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const { dark, toggle } = useTheme();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -22,7 +25,7 @@ export default function Layout() {
   };
 
   return (
-    <div className="flex h-screen bg-surface-50">
+    <div className="flex h-screen bg-surface-50 dark:bg-surface-900">
       {/* Skip link for keyboard navigation */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-medium">
         Saltar al contenido principal
@@ -37,7 +40,7 @@ export default function Layout() {
 
       {/* Sidebar */}
       <aside aria-label="Navegación principal" className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-surface-200
+        fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-surface-800 border-r border-surface-200 dark:border-surface-700
         flex flex-col transform transition-transform duration-200 ease-in-out
         lg:relative lg:translate-x-0 lg:z-auto
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -70,16 +73,15 @@ export default function Layout() {
               key={to}
               to={to}
               onClick={() => setSidebarOpen(false)}
-              aria-current={({ isActive }) => isActive ? 'page' : undefined}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-surface-600 hover:bg-surface-100'
+                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                    : 'text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700'
                 }`
               }
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-4 h-4" />
               {label}
             </NavLink>
           ))}
@@ -95,6 +97,13 @@ export default function Layout() {
               <p className="text-sm font-medium text-surface-900 truncate">{user?.name}</p>
               <p className="text-xs text-surface-500 capitalize">{user?.role?.toLowerCase() || 'Usuario'}</p>
             </div>
+            <button
+              onClick={toggle}
+              className="p-2 rounded-xl hover:bg-surface-100 text-surface-500 dark:text-surface-400 transition-colors"
+              aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+            >
+              {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
             <button
               onClick={handleLogout}
               className="p-2 rounded-xl hover:bg-red-50 text-surface-500 hover:text-red-600 transition-colors"

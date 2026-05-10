@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import Analytics from './pages/Analytics';
 import Rooms from './pages/Rooms';
 import Reservations from './pages/Reservations';
 import Guests from './pages/Guests';
@@ -20,6 +22,7 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
@@ -28,6 +31,7 @@ export default function App() {
             <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
               <Route index element={<Navigate to="/dashboard" />} />
               <Route path="dashboard" element={<Dashboard />} />
+              <Route path="analytics" element={<Analytics />} />
               <Route path="calendar" element={<Calendar />} />
               <Route path="rooms" element={<Rooms />} />
               <Route path="reservations" element={<Reservations />} />
@@ -38,5 +42,6 @@ export default function App() {
         </BrowserRouter>
       </AuthProvider>
     </QueryClientProvider>
+    </ThemeProvider>
   );
 }

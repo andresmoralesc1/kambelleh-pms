@@ -40,5 +40,6 @@ export const confirmPayment = (data) => api.post('/payments/confirm', data);
 // Dashboard
 export const getDashboardStats = () => api.get('/dashboard/stats');
 export const getDashboardCalendar = (params) => api.get('/dashboard/calendar', { params });
+export const getDashboardAnalytics = (params) => api.get('/dashboard/analytics', { params });
 
 export default api;
