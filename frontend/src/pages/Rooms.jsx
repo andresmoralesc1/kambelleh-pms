@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { DoorOpen, Plus, Pencil, Trash2, Bed, Wifi, Wind, Coffee, Tv, Search } from 'lucide-react';
 import { useRooms, useCreateRoom, useDeleteRoom } from '../hooks/useQueries';
 import { formatCurrencyCompact } from '../utils/currency';
+import { useToast } from '../components/ToastProvider';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 const amenityIcons = { WiFi: Wifi, 'A/C': Wind, Desayuno: Coffee, TV: Tv };
 
@@ -19,15 +21,18 @@ function RoomModal({ room, onClose }) {
   });
   const [error, setError] = useState('');
   const createRoom = useCreateRoom();
+  const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     try {
       await createRoom.mutateAsync({ ...form, pricePerNight: parseFloat(form.pricePerNight) });
+      toast.success(room ? `Habitación #${form.number} actualizada` : `Habitación #${form.number} creada`);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al crear la habitación');
+      setError(err.response?.data?.error || 'Error al guardar la habitación');
+      toast.error(err.response?.data?.error || 'Error al guardar la habitación');
     }
   };
 
@@ -135,20 +140,34 @@ function RoomModal({ room, onClose }) {
 export default function Rooms() {
   const [showModal, setShowModal] = useState(false);
   const [filter, setFilter] = useState('ALL');
+  const [confirmState, setConfirmState] = useState(null);
   const { data, isLoading } = useRooms();
   const deleteRoom = useDeleteRoom();
+  const toast = useToast();
 
   const rooms = data?.rooms || [];
   const filtered = filter === 'ALL' ? rooms : rooms.filter(r => r.status === filter);
 
-  const handleDelete = async (id) => {
-    if (!confirm('¿Eliminar esta habitación?')) return;
-    try {
-      await deleteRoom.mutateAsync(id);
-    } catch (err) {
-      alert(err.response?.data?.error || 'No se puede eliminar');
-    }
+  const handleDelete = async (room) => {
+    setConfirmState({
+      title: 'Eliminar habitación',
+      message: `¿Eliminar la habitación #${room.number} — ${room.name}? Esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar',
+      confirmVariant: 'danger',
+      resolve: async (ok) => {
+        if (!ok) return;
+        try {
+          await deleteRoom.mutateAsync(room.id);
+          toast.success(`Habitación #${room.number} eliminada`);
+        } catch (err) {
+          toast.error(err.response?.data?.error || 'No se pudo eliminar la habitación');
+        }
+      },
+    });
   };
+
+  const handleConfirm = () => { confirmState?.resolve?.(true); setConfirmState(null); };
+  const handleCancel = () => { confirmState?.resolve?.(false); setConfirmState(null); };
 
   const statusFilters = ['ALL', 'AVAILABLE', 'OCCUPIED', 'MAINTENANCE'];
   const statusLabels = { ALL: 'Todas', AVAILABLE: 'Disponibles', OCCUPIED: 'Ocupadas', MAINTENANCE: 'Mantenimiento' };
@@ -265,7 +284,7 @@ export default function Rooms() {
                       className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-500 hover:text-surface-700 transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(room.id)}
+                    <button onClick={() => handleDelete(room)}
                       aria-label={`Eliminar habitación ${room.number}`}
                       className="p-1.5 rounded-lg hover:bg-red-50 text-surface-500 hover:text-red-600 transition-colors">
                       <Trash2 className="w-4 h-4" />
@@ -279,6 +298,25 @@ export default function Rooms() {
       )}
 
       {showModal && <RoomModal room={showModal === true ? null : showModal} onClose={() => setShowModal(false)} />}
+      {confirmState && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-surface-900">{confirmState.title}</h2>
+              </div>
+            </div>
+            <p className="text-sm text-surface-600 mb-6">{confirmState.message}</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 text-surface-700 text-sm font-medium hover:bg-surface-50 transition-colors">Cancelar</button>
+              <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors">{confirmState.confirmLabel}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

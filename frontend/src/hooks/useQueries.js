@@ -74,6 +74,10 @@ export function useUpdateGuest() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: ({ id, data }) => api.updateGuest(id, data), onSuccess: (_, { id }) => qc.invalidateQueries({ queryKey: keys.guest(id) }) });
 }
+export function useDeleteGuest() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: api.deleteGuest, onSuccess: () => qc.invalidateQueries({ queryKey: ['guests'] }) });
+}
 
 // Dashboard
 export function useDashboardStats() {

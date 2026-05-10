@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Plus, Search, Eye, User, Phone, Mail, MapPin, Pencil, X, Users } from 'lucide-react';
-import { useGuests, useCreateGuest, useUpdateGuest } from '../hooks/useQueries';
+import { Plus, Search, Eye, User, Phone, Mail, MapPin, Pencil, X, Users, Trash2 } from 'lucide-react';
+import { useGuests, useCreateGuest, useUpdateGuest, useDeleteGuest } from '../hooks/useQueries';
+import { useToast } from '../components/ToastProvider';
 
 function GuestModal({ guest, onClose }) {
   const [form, setForm] = useState(guest || {
@@ -9,6 +10,7 @@ function GuestModal({ guest, onClose }) {
   const [error, setError] = useState('');
   const createGuest = useCreateGuest();
   const updateGuest = useUpdateGuest();
+  const toast = useToast();
   const isEditing = !!guest;
 
   const handleSubmit = async (e) => {
@@ -17,12 +19,15 @@ function GuestModal({ guest, onClose }) {
     try {
       if (isEditing) {
         await updateGuest.mutateAsync({ id: guest.id, data: form });
+        toast.success('Huésped actualizado correctamente');
       } else {
         await createGuest.mutateAsync(form);
+        toast.success('Huésped creado correctamente');
       }
       onClose();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al guardar el huésped');
+      toast.error(err.response?.data?.error || 'Error al guardar el huésped');
     }
   };
 
@@ -109,9 +114,33 @@ export default function Guests() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingGuest, setEditingGuest] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
   const { data, isLoading } = useGuests({ search });
+  const deleteGuest = useDeleteGuest();
+  const toast = useToast();
 
   const guests = data?.guests || [];
+
+  const handleDelete = (guest) => {
+    setConfirmState({
+      title: 'Eliminar huésped',
+      message: `¿Eliminar a ${guest.name}? Esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar',
+      confirmVariant: 'danger',
+      resolve: async (ok) => {
+        if (!ok) return;
+        try {
+          await deleteGuest.mutateAsync(guest.id);
+          toast.success(`Huésped ${guest.name} eliminado`);
+        } catch (err) {
+          toast.error(err.response?.data?.error || 'No se pudo eliminar el huésped');
+        }
+      },
+    });
+  };
+
+  const handleConfirm = () => { confirmState?.resolve?.(true); setConfirmState(null); };
+  const handleCancel = () => { confirmState?.resolve?.(false); setConfirmState(null); };
 
   return (
     <div className="p-6 space-y-5" role="main">
@@ -179,6 +208,11 @@ export default function Guests() {
                     className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-500 hover:text-surface-700 transition-colors">
                     <Pencil className="w-4 h-4" />
                   </button>
+                  <button onClick={() => handleDelete(guest)}
+                    aria-label={`Eliminar huésped ${guest.name}`}
+                    className="p-1.5 rounded-lg hover:bg-red-50 text-surface-500 hover:text-red-600 transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
 
                 <div className="space-y-1.5 text-sm text-surface-600">
@@ -214,6 +248,25 @@ export default function Guests() {
       )}
 
       {showModal && <GuestModal guest={editingGuest} onClose={() => { setShowModal(false); setEditingGuest(null); }} />}
+      {confirmState && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-surface-900">{confirmState.title}</h2>
+              </div>
+            </div>
+            <p className="text-sm text-surface-600 mb-6">{confirmState.message}</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 text-surface-700 text-sm font-medium hover:bg-surface-50 transition-colors">Cancelar</button>
+              <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors">{confirmState.confirmLabel}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './components/ToastProvider';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -23,25 +24,27 @@ function ProtectedRoute({ children }) {
 export default function App() {
   return (
     <ThemeProvider>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-              <Route index element={<Navigate to="/dashboard" />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="analytics" element={<Analytics />} />
-              <Route path="calendar" element={<Calendar />} />
-              <Route path="rooms" element={<Rooms />} />
-              <Route path="reservations" element={<Reservations />} />
-              <Route path="reservations/new" element={<NewReservation />} />
-              <Route path="guests" element={<Guests />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+      <ToastProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                  <Route index element={<Navigate to="/dashboard" />} />
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="analytics" element={<Analytics />} />
+                  <Route path="calendar" element={<Calendar />} />
+                  <Route path="rooms" element={<Rooms />} />
+                  <Route path="reservations" element={<Reservations />} />
+                  <Route path="reservations/new" element={<NewReservation />} />
+                  <Route path="guests" element={<Guests />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
+        </QueryClientProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

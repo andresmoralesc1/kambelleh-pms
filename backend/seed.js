@@ -8,7 +8,7 @@ async function seed() {
   if (!existing) {
     const hashed = await bcrypt.hash('admin123', 10);
     await prisma.user.create({
-      data: { name: 'Admin', email: 'admin@kambelleh.com', password: hashed, role: 'ADMIN' },
+      data: { name: 'Admin', email: 'admin@kambelleh.com', passwordHash: hashed, role: 'ADMIN' },
     });
     console.log('Admin created');
   } else {
@@ -17,24 +17,20 @@ async function seed() {
 
   const roomCount = await prisma.room.count();
   if (roomCount === 0) {
-    const roomTypes = [
-      { type: 'STANDARD', basePrice: 80 },
-      { type: 'DELUXE', basePrice: 120 },
-      { type: 'SUITE', basePrice: 200 },
+    const rooms = [
+      { number: '101', name: 'Standard Interior', type: 'PRIVATE', capacity: 2, pricePerNight: 15000, status: 'AVAILABLE', amenities: ['WiFi', 'A/C', 'TV'], floor: 1 },
+      { number: '102', name: 'Standard Vista', type: 'PRIVATE', capacity: 2, pricePerNight: 18000, status: 'AVAILABLE', amenities: ['WiFi', 'A/C', 'TV'], floor: 1 },
+      { number: '103', name: 'Doble Superior', type: 'PRIVATE', capacity: 2, pricePerNight: 22000, status: 'AVAILABLE', amenities: ['WiFi', 'A/C', 'TV', 'Desayuno'], floor: 1 },
+      { number: '201', name: 'Suite Júnior', type: 'PRIVATE', capacity: 2, pricePerNight: 35000, status: 'AVAILABLE', amenities: ['WiFi', 'A/C', 'TV', 'Desayuno'], floor: 2 },
+      { number: '202', name: 'Suite Executive', type: 'PRIVATE', capacity: 3, pricePerNight: 45000, status: 'AVAILABLE', amenities: ['WiFi', 'A/C', 'TV', 'Desayuno'], floor: 2 },
+      { number: '203', name: 'Suite Presidencial', type: 'PRIVATE', capacity: 4, pricePerNight: 65000, status: 'AVAILABLE', amenities: ['WiFi', 'A/C', 'TV', 'Desayuno'], floor: 2 },
+      { number: '301', name: 'Dormitorio Compartido', type: 'SHARED', capacity: 6, pricePerNight: 6000, status: 'AVAILABLE', amenities: ['WiFi', 'A/C'], floor: 3 },
+      { number: '302', name: 'Dormitorio Female', type: 'SHARED', capacity: 4, pricePerNight: 7000, status: 'AVAILABLE', amenities: ['WiFi', 'A/C'], floor: 3 },
     ];
-    for (let i = 1; i <= 10; i++) {
-      const rt = roomTypes[(i - 1) % 3];
-      await prisma.room.create({
-        data: {
-          number: String(i).padStart(3, '0'),
-          name: `${rt.type} ${i}`,
-          type: rt.type,
-          basePrice: rt.basePrice,
-          status: 'AVAILABLE',
-        },
-      });
+    for (const r of rooms) {
+      await prisma.room.create({ data: r });
     }
-    console.log('10 rooms created');
+    console.log(`${rooms.length} rooms created`);
   } else {
     console.log(`${roomCount} rooms exist`);
   }
@@ -42,16 +38,75 @@ async function seed() {
   const guestCount = await prisma.guest.count();
   if (guestCount === 0) {
     const guests = [
-      { name: 'Juan Pérez', email: 'juan@example.com', phone: '+54 11 1234 5678', documentType: 'DNI', documentNumber: '12345678' },
-      { name: 'María García', email: 'maria@example.com', phone: '+54 11 8765 4321', documentType: 'PASSPORT', documentNumber: 'AB123456' },
-      { name: 'Carlos López', email: 'carlos@example.com', phone: '+54 11 5555 1234', documentType: 'DNI', documentNumber: '87654321' },
+      { name: 'Juan Pérez', email: 'juan.perez@gmail.com', phone: '+54 11 1234 5678', documentType: 'DNI', documentNumber: '32123456', nationality: 'Argentina' },
+      { name: 'María García', email: 'maria.garcia@hotmail.com', phone: '+54 11 8765 4321', documentType: 'PASSPORT', documentNumber: 'AB1234567', nationality: 'España' },
+      { name: 'Carlos López', email: 'carlos.lopez@yahoo.com', phone: '+54 11 5555 1234', documentType: 'DNI', documentNumber: '45678901', nationality: 'Argentina' },
+      { name: 'Ana Martínez', email: 'ana.martinez@gmail.com', phone: '+54 11 9999 8888', documentType: 'DNI', documentNumber: '11223344', nationality: 'México' },
+      { name: 'Pedro Sánchez', email: 'pedro.sanchez@gmail.com', phone: '+54 11 2222 3333', documentType: 'ID', documentNumber: 'XA123456', nationality: 'Colombia' },
+      { name: 'Laura Torres', email: 'laura.torres@gmail.com', phone: '+54 11 7777 6666', documentType: 'PASSPORT', documentNumber: 'CD789012', nationality: 'Chile' },
     ];
     for (const g of guests) await prisma.guest.create({ data: g });
-    console.log('3 guests created');
+    console.log(`${guests.length} guests created`);
+  } else {
+    console.log(`${guestCount} guests exist`);
+  }
+
+  const resCount = await prisma.reservation.count();
+  if (resCount === 0) {
+    const rooms = await prisma.room.findMany();
+    const guests = await prisma.guest.findMany();
+
+    const now = new Date();
+    const reservations = [
+      { guestIndex: 0, roomIndex: 0, checkIn: addDays(now, -10), checkOut: addDays(now, -7), status: 'CHECKED_OUT', adults: 2, children: 0, totalAmount: 45000, adultsExtra: 0 },
+      { guestIndex: 1, roomIndex: 1, checkIn: addDays(now, -5), checkOut: addDays(now, -3), status: 'CHECKED_OUT', adults: 2, children: 1, totalAmount: 36000, adultsExtra: 0 },
+      { guestIndex: 2, roomIndex: 2, checkIn: addDays(now, -2), checkOut: addDays(now, 1), status: 'CHECKED_IN', adults: 1, children: 0, totalAmount: 66000, adultsExtra: 0 },
+      { guestIndex: 3, roomIndex: 3, checkIn: addDays(now, 1), checkOut: addDays(now, 4), status: 'CONFIRMED', adults: 2, children: 2, totalAmount: 105000, adultsExtra: 0 },
+      { guestIndex: 4, roomIndex: 4, checkIn: addDays(now, 3), checkOut: addDays(now, 6), status: 'CONFIRMED', adults: 2, children: 0, totalAmount: 135000, adultsExtra: 0 },
+      { guestIndex: 5, roomIndex: 5, checkIn: addDays(now, 5), checkOut: addDays(now, 8), status: 'PENDING', adults: 3, children: 1, totalAmount: 195000, adultsExtra: 0 },
+      { guestIndex: 0, roomIndex: 0, checkIn: addDays(now, 7), checkOut: addDays(now, 10), status: 'CONFIRMED', adults: 2, children: 0, totalAmount: 45000, adultsExtra: 0 },
+      { guestIndex: 2, roomIndex: 6, checkIn: addDays(now, 10), checkOut: addDays(now, 15), status: 'PENDING', adults: 1, children: 0, totalAmount: 30000, adultsExtra: 0 },
+    ];
+
+    for (const r of reservations) {
+      const res = await prisma.reservation.create({
+        data: {
+          guestId: guests[r.guestIndex].id,
+          roomId: rooms[r.roomIndex].id,
+          checkIn: r.checkIn,
+          checkOut: r.checkOut,
+          status: r.status,
+          adults: r.adults,
+          children: r.children,
+          totalAmount: r.totalAmount,
+        },
+      });
+
+      // Create payment for non-pending reservations
+      if (r.status !== 'PENDING') {
+        await prisma.payment.create({
+          data: {
+            reservationId: res.id,
+            amount: r.totalAmount,
+            status: 'COMPLETED',
+            stripeChargeId: `pi_seed_${res.id.slice(0, 8)}`,
+          },
+        });
+      }
+    }
+    console.log(`${reservations.length} reservations + payments created`);
+  } else {
+    console.log(`${resCount} reservations exist`);
   }
 
   console.log('Seed done');
   await prisma.$disconnect();
+}
+
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
 }
 
 seed().catch(console.error);
