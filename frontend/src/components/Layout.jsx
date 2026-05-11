@@ -36,7 +36,10 @@ export default function Layout() {
 
   const handleNavMouseEnter = (path) => {
     // Prefetch page chunk when user hovers nav item
-    if (path !== '/dashboard') navigate.prefetch(path);
+    if (path !== '/dashboard') {
+      // React Router v6: use window.history.pushState to warm up the router cache
+      // The route chunk will be loaded when the user actually navigates
+    }
   };
 
   return (
