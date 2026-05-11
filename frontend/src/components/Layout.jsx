@@ -34,6 +34,11 @@ export default function Layout() {
     navigate('/login');
   };
 
+  const handleNavMouseEnter = (path) => {
+    // Prefetch page chunk when user hovers nav item
+    if (path !== '/dashboard') navigate.prefetch(path);
+  };
+
   return (
     <div className="flex h-screen bg-surface-50 dark:bg-surface-900">
       {/* Skip link for keyboard navigation */}
@@ -83,6 +88,7 @@ export default function Layout() {
               key={to}
               to={to}
               onClick={() => setSidebarOpen(false)}
+              onMouseEnter={() => handleNavMouseEnter(to)}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive
