@@ -3,9 +3,6 @@ FROM node:20 AS runtime
 WORKDIR /app
 ENV NODE_ENV=production PORT=3001
 
-# Install OpenSSL 1.1 for Prisma (required by libquery_engine)
-RUN apk add --no-cache libressl libressl1.1 || apk add --no-cache openssl
-
 # Install all dependencies including axios (used in services but missing from package.json)
 COPY backend/package.json backend/package-lock.json* ./
 RUN npm ci --ignore-scripts && npm install axios && npm cache clean --force
