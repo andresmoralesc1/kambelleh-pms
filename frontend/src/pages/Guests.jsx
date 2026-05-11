@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { Plus, Search, Eye, User, Phone, Mail, MapPin, Pencil, X, Users, Trash2 } from 'lucide-react';
-import { useGuests, useCreateGuest, useUpdateGuest, useDeleteGuest } from '../hooks/useQueries';
+import { Plus, Search, Eye, User, Phone, Mail, MapPin, Pencil, X, Users, Trash2, Download, StickyNote } from 'lucide-react';
+import { useGuests, useCreateGuest, useUpdateGuest, useDeleteGuest, useNotes, useCreateNote, useDeleteNote } from '../hooks/useQueries';
+import { useExportGuests } from '../hooks/useExport';
 import { useToast } from '../components/ToastProvider';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale/es';
 
 function GuestModal({ guest, onClose }) {
   const [form, setForm] = useState(guest || {
@@ -110,6 +113,214 @@ function GuestModal({ guest, onClose }) {
   );
 }
 
+function NoteModal({ guestId, onClose }) {
+  const [content, setContent] = useState('');
+  const [authorName, setAuthorName] = useState('');
+  const [error, setError] = useState('');
+  const createNote = useCreateNote();
+  const toast = useToast();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      await createNote.mutateAsync({ content, authorName, guestId });
+      toast.success('Nota agregada correctamente');
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al crear la nota');
+      toast.error(err.response?.data?.error || 'Error al crear la nota');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="note-modal-title">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 id="note-modal-title" className="text-lg font-bold text-surface-900">Agregar nota interna</h2>
+          <button onClick={onClose} aria-label="Cerrar" className="p-1.5 rounded-lg hover:bg-surface-100"><X className="w-5 h-5" /></button>
+        </div>
+
+        {error && (
+          <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-medium text-surface-700 mb-1">Tu nombre *</label>
+            <input value={authorName} onChange={e => setAuthorName(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+              required placeholder="Recepción" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-surface-700 mb-1">Nota *</label>
+            <textarea value={content} onChange={e => setContent(e.target.value)} rows="4"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+              required placeholder="Información relevante sobre el huésped..." />
+          </div>
+          <div className="flex gap-2 pt-2">
+            <button type="button" onClick={onClose}
+              className="flex-1 px-4 py-2.5 rounded-xl border border-surface-300 text-sm font-medium text-surface-600 hover:bg-surface-50 transition-colors">
+              Cancelar
+            </button>
+            <button type="submit" disabled={createNote.isPending}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors">
+              {createNote.isPending ? 'Guardando...' : 'Agregar nota'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function GuestCard({ guest, onDelete }) {
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [confirmState, setConfirmState] = useState(null);
+  const { data: notesData, isLoading: notesLoading } = useNotes({ guestId: guest.id });
+  const deleteNote = useDeleteNote();
+  const toast = useToast();
+
+  const notes = notesData?.notes || [];
+
+  const handleDeleteNote = (note) => {
+    setConfirmState({
+      title: 'Eliminar nota',
+      message: '¿Eliminar esta nota interna? Esta acción no se puede deshacer.',
+      confirmLabel: 'Eliminar',
+      confirmVariant: 'danger',
+      resolve: async (ok) => {
+        if (!ok) return;
+        try {
+          await deleteNote.mutateAsync(note.id);
+          toast.success('Nota eliminada correctamente');
+        } catch (err) {
+          toast.error(err.response?.data?.error || 'No se pudo eliminar la nota');
+        }
+      },
+    });
+  };
+
+  const handleConfirm = () => { confirmState?.resolve?.(true); setConfirmState(null); };
+  const handleCancel = () => { confirmState?.resolve?.(false); setConfirmState(null); };
+
+  const totalReservations = guest._count?.reservations || 0;
+  const lastReservation = guest.reservations?.[0];
+
+  return (
+    <>
+      <div className="bg-white rounded-2xl border border-surface-200 p-5 hover:shadow-md transition-shadow">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center text-sm font-bold">
+              {guest.name.charAt(0)}
+            </div>
+            <div>
+              <p className="font-semibold text-surface-900">{guest.name}</p>
+              <p className="text-xs text-surface-500">{totalReservations} reserva{totalReservations !== 1 ? 's' : ''}</p>
+            </div>
+          </div>
+          <button onClick={() => onDelete(guest)}
+            aria-label={`Eliminar huésped ${guest.name}`}
+            className="p-1.5 rounded-lg hover:bg-red-50 text-surface-500 hover:text-red-600 transition-colors">
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="space-y-1.5 text-sm text-surface-600">
+          {guest.email && (
+            <div className="flex items-center gap-2">
+              <Mail className="w-3.5 h-3.5 text-surface-500 flex-shrink-0" />
+              <span className="truncate">{guest.email}</span>
+            </div>
+          )}
+          {guest.phone && (
+            <div className="flex items-center gap-2">
+              <Phone className="w-3.5 h-3.5 text-surface-500 flex-shrink-0" />
+              <span>{guest.phone}</span>
+            </div>
+          )}
+          {guest.nationality && (
+            <div className="flex items-center gap-2">
+              <MapPin className="w-3.5 h-3.5 text-surface-500 flex-shrink-0" />
+              <span>{guest.nationality}</span>
+            </div>
+          )}
+        </div>
+
+        {lastReservation && (
+          <div className="mt-3 pt-3 border-t border-surface-100 text-xs text-surface-500">
+            Última reserva: Hab. {lastReservation.room?.number}
+          </div>
+        )}
+
+        {/* Notas internas */}
+        <div className="mt-4 pt-3 border-t border-surface-200">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-surface-700">
+              <StickyNote className="w-3.5 h-3.5" />
+              <span>Notas internas</span>
+              <span className="text-surface-400">({notes.length})</span>
+            </div>
+            <button onClick={() => setShowNoteModal(true)}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary-50 text-primary-600 hover:bg-primary-100 text-xs font-medium transition-colors">
+              <Plus className="w-3 h-3" /> Agregar
+            </button>
+          </div>
+
+          {notesLoading ? (
+            <div className="space-y-2">
+              <div className="h-12 bg-surface-100 rounded-lg animate-pulse" />
+            </div>
+          ) : notes.length === 0 ? (
+            <p className="text-xs text-surface-400 italic">Sin notas internas</p>
+          ) : (
+            <div className="space-y-2 max-h-32 overflow-y-auto">
+              {notes.map(note => (
+                <div key={note.id} className="bg-surface-50 rounded-lg p-2 text-xs group relative">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-surface-700 line-clamp-2">{note.content}</p>
+                      <p className="text-surface-400 mt-1">
+                        {note.authorName} • {format(new Date(note.createdAt), 'dd MMM yyyy', { locale: es })}
+                      </p>
+                    </div>
+                    <button onClick={() => handleDeleteNote(note)}
+                      className="p-1 rounded hover:bg-red-50 text-surface-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {showNoteModal && <NoteModal guestId={guest.id} onClose={() => setShowNoteModal(false)} />}
+      {confirmState && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-surface-900">{confirmState.title}</h2>
+              </div>
+            </div>
+            <p className="text-sm text-surface-600 mb-6">{confirmState.message}</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 text-surface-700 text-sm font-medium hover:bg-surface-50 transition-colors">Cancelar</button>
+              <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors">{confirmState.confirmLabel}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function Guests() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -118,6 +329,7 @@ export default function Guests() {
   const { data, isLoading } = useGuests({ search });
   const deleteGuest = useDeleteGuest();
   const toast = useToast();
+  const exportGuests = useExportGuests();
 
   const guests = data?.guests || [];
 
@@ -150,11 +362,18 @@ export default function Guests() {
           <h1 className="text-2xl font-bold text-surface-900">Huéspedes</h1>
           <p className="text-surface-500 text-sm mt-0.5">{guests.length} huéspedes registrados</p>
         </div>
-        <button onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
-          aria-label="Registrar nuevo huésped">
-          <Plus className="w-4 h-4" aria-hidden="true" /> Nuevo huésped
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={exportGuests}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-surface-300 bg-white hover:bg-surface-50 text-surface-700 text-sm font-medium transition-colors"
+            aria-label="Exportar huéspedes a CSV">
+            <Download className="w-4 h-4" aria-hidden="true" /> Exportar CSV
+          </button>
+          <button onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
+            aria-label="Registrar nuevo huésped">
+            <Plus className="w-4 h-4" aria-hidden="true" /> Nuevo huésped
+          </button>
+        </div>
       </header>
 
       {/* Search */}
@@ -169,7 +388,7 @@ export default function Guests() {
       {/* Loading skeleton */}
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => <div key={i} className="h-36 bg-surface-200 rounded-2xl animate-pulse" />)}
+          {[...Array(6)].map((_, i) => <div key={i} className="h-48 bg-surface-200 rounded-2xl animate-pulse" />)}
         </div>
       ) : guests.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -188,62 +407,9 @@ export default function Guests() {
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {guests.map(guest => {
-            const totalReservations = guest._count?.reservations || 0;
-            const lastReservation = guest.reservations?.[0];
-            return (
-              <div key={guest.id} className="bg-white rounded-2xl border border-surface-200 p-5 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center text-sm font-bold">
-                      {guest.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-surface-900">{guest.name}</p>
-                      <p className="text-xs text-surface-500">{totalReservations} reserva{totalReservations !== 1 ? 's' : ''}</p>
-                    </div>
-                  </div>
-                  <button onClick={() => { setEditingGuest(guest); setShowModal(true); }}
-                    aria-label={`Editar huésped ${guest.name}`}
-                    className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-500 hover:text-surface-700 transition-colors">
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button onClick={() => handleDelete(guest)}
-                    aria-label={`Eliminar huésped ${guest.name}`}
-                    className="p-1.5 rounded-lg hover:bg-red-50 text-surface-500 hover:text-red-600 transition-colors">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="space-y-1.5 text-sm text-surface-600">
-                  {guest.email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-3.5 h-3.5 text-surface-500 flex-shrink-0" />
-                      <span className="truncate">{guest.email}</span>
-                    </div>
-                  )}
-                  {guest.phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-surface-500 flex-shrink-0" />
-                      <span>{guest.phone}</span>
-                    </div>
-                  )}
-                  {guest.nationality && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-surface-500 flex-shrink-0" />
-                      <span>{guest.nationality}</span>
-                    </div>
-                  )}
-                </div>
-
-                {lastReservation && (
-                  <div className="mt-3 pt-3 border-t border-surface-100 text-xs text-surface-500">
-                    Última reserva: Hab. {lastReservation.room?.number}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+          {guests.map(guest => (
+            <GuestCard key={guest.id} guest={guest} onDelete={handleDelete} />
+          ))}
         </div>
       )}
 

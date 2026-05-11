@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as api from '../api';
+import { toast } from '../components/ToastProvider';
 
 // Keys factory
 export const keys = {
@@ -90,4 +91,123 @@ export function useDashboardCalendar(month) {
 // Payments
 export function useCreatePaymentIntent() {
   return useMutation({ mutationFn: api.createPaymentIntent });
+}
+
+// Cleaning
+export function useRoomCleaningLogs(roomId) {
+  return useQuery({
+    queryKey: ['rooms', roomId, 'cleaning-logs'],
+    queryFn: () => api.getRoomCleaningLogs(roomId).then(r => r.data),
+    enabled: !!roomId,
+  });
+}
+export function useUpdateRoomCleaningStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ roomId, status }) => api.updateRoomCleaningStatus(roomId, status),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.rooms() });
+      toast.success('Estado de limpieza actualizado');
+    },
+    onError: () => {
+      toast.error('Error al actualizar el estado de limpieza');
+    },
+  });
+}
+export function useCreateCleaningLog() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ roomId, data }) => api.createCleaningLog(roomId, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.rooms() });
+      toast.success('Registro de limpieza creado');
+    },
+    onError: () => {
+      toast.error('Error al crear el registro de limpieza');
+    },
+  });
+}
+
+// Internal Notes
+export function useNotes(params) {
+  return useQuery({
+    queryKey: ['notes', params],
+    queryFn: () => api.getNotes(params).then(r => r.data),
+    enabled: !!params.guestId || !!params.reservationId,
+  });
+}
+export function useCreateNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.createNote,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['notes'] });
+    },
+  });
+}
+export function useDeleteNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.deleteNote,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['notes'] });
+    },
+  });
+}
+
+// Settings
+export function useSettings() {
+  return useQuery({
+    queryKey: ['settings'],
+    queryFn: () => api.getSettings().then(r => r.data),
+  });
+}
+export function useUpdateSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.updateSettings,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['settings'] });
+      toast.success('Configuración guardada correctamente');
+    },
+    onError: () => {
+      toast.error('Error al guardar la configuración');
+    },
+  });
+}
+
+// Channel Manager - Airbnb
+export function useChannelStatus() {
+  return useQuery({
+    queryKey: ['channel', 'airbnb', 'status'],
+    queryFn: () => api.getChannelStatus().then(r => r.data),
+  });
+}
+export function useConnectChannel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.connectAirbnbChannel,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['channel', 'airbnb', 'status'] });
+    },
+  });
+}
+export function useDisconnectChannel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.disconnectAirbnbChannel,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['channel', 'airbnb', 'status'] });
+    },
+  });
+}
+export function useSyncChannel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.syncAirbnbChannel,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['reservations'] });
+      qc.invalidateQueries({ queryKey: keys.dashboard() });
+    },
+  });
 }

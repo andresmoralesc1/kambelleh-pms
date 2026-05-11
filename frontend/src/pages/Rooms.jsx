@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { DoorOpen, Plus, Pencil, Trash2, Bed, Wifi, Wind, Coffee, Tv, Search } from 'lucide-react';
+import { DoorOpen, Plus, Pencil, Trash2, Bed, Wifi, Wind, Coffee, Tv, Search, Download } from 'lucide-react';
 import { useRooms, useCreateRoom, useDeleteRoom } from '../hooks/useQueries';
+import { useExportRooms } from '../hooks/useExport';
 import { formatCurrencyCompact } from '../utils/currency';
 import { useToast } from '../components/ToastProvider';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -144,6 +145,7 @@ export default function Rooms() {
   const { data, isLoading } = useRooms();
   const deleteRoom = useDeleteRoom();
   const toast = useToast();
+  const exportRooms = useExportRooms();
 
   const rooms = data?.rooms || [];
   const filtered = filter === 'ALL' ? rooms : rooms.filter(r => r.status === filter);
@@ -180,11 +182,18 @@ export default function Rooms() {
           <h1 className="text-2xl font-bold text-surface-900">Habitaciones</h1>
           <p className="text-surface-500 text-sm mt-0.5">{rooms.length} habitaciones registradas</p>
         </div>
-        <button onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
-          aria-label="Crear nueva habitación">
-          <Plus className="w-4 h-4" aria-hidden="true" /> Nueva habitación
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={exportRooms}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-surface-300 bg-white hover:bg-surface-50 text-surface-700 text-sm font-medium transition-colors"
+            aria-label="Exportar habitaciones a CSV">
+            <Download className="w-4 h-4" aria-hidden="true" /> Exportar CSV
+          </button>
+          <button onClick={() => setShowModal(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
+            aria-label="Crear nueva habitación">
+            <Plus className="w-4 h-4" aria-hidden="true" /> Nueva habitación
+          </button>
+        </div>
       </header>
 
       {/* Filters */}

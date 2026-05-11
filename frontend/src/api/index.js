@@ -43,4 +43,30 @@ export const getDashboardStats = () => api.get('/dashboard/stats');
 export const getDashboardCalendar = (params) => api.get('/dashboard/calendar', { params });
 export const getDashboardAnalytics = (params) => api.get('/dashboard/analytics', { params });
 
+// Internal Notes
+export const getNotes = (params) => api.get('/notes', { params });
+export const createNote = (data) => api.post('/notes', data);
+export const deleteNote = (id) => api.delete(`/notes/${id}`);
+
+// Cleaning
+export const getCleaningRooms = () => api.get('/cleaning/rooms');
+export const getRoomCleaningLogs = (roomId) => api.get(`/cleaning/rooms/${roomId}/cleaning-logs`);
+export const updateRoomCleaningStatus = (roomId, status) => api.patch(`/cleaning/rooms/${roomId}/cleaning-status`, { status });
+export const createCleaningLog = (roomId, data) => api.post(`/cleaning/rooms/${roomId}/cleaning-logs`, data);
+
+// Exports
+export const exportReservationsCSV = () => api.get('/exports/reservations', { responseType: 'blob' });
+export const exportGuestsCSV = () => api.get('/exports/guests', { responseType: 'blob' });
+export const exportRoomsCSV = () => api.get('/exports/rooms', { responseType: 'blob' });
+
+// Channel Manager
+export const getChannelStatus = () => api.get('/channels/airbnb/status');
+export const connectAirbnbChannel = () => api.post('/channels/airbnb/connect');
+export const disconnectAirbnbChannel = () => api.post('/channels/airbnb/disconnect');
+export const syncAirbnbChannel = () => api.post('/channels/airbnb/sync');
+
+// Settings
+export const getSettings = () => api.get('/settings');
+export const updateSettings = (data) => api.put('/settings', data);
+
 export default api;

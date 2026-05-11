@@ -99,6 +99,107 @@ async function seed() {
     console.log(`${resCount} reservations exist`);
   }
 
+  // Seed cleaning logs
+  const cleaningLogCount = await prisma.cleaningLog.count();
+  if (cleaningLogCount === 0) {
+    const rooms = await prisma.room.findMany();
+    const staffNames = ['María López', 'Carlos García', 'Ana Martínez', 'Pedro Sánchez'];
+
+    for (let i = 0; i < rooms.length; i++) {
+      const room = rooms[i];
+      // Create 1-2 logs per room
+      const logCount = i % 2 === 0 ? 2 : 1;
+      for (let j = 0; j < logCount; j++) {
+        const daysAgo = (i + j) * 2 + 1;
+        await prisma.cleaningLog.create({
+          data: {
+            roomId: room.id,
+            performedBy: staffNames[(i + j) % staffNames.length],
+            status: 'CLEANED',
+            notes: 'Limpieza completa de la habitación',
+            createdAt: addDays(new Date(), -daysAgo),
+            completedAt: addDays(new Date(), -daysAgo),
+          },
+        });
+      }
+      // Set some rooms as needing cleaning or in cleaning
+      if (i === 2) {
+        await prisma.room.update({ where: { id: room.id }, data: { cleaningStatus: 'NEEDS_CLEANING' } });
+      } else if (i === 5) {
+        await prisma.room.update({ where: { id: room.id }, data: { cleaningStatus: 'IN_CLEANING' } });
+      } else if (i === 7) {
+        await prisma.room.update({ where: { id: room.id }, data: { cleaningStatus: 'MAINTENANCE' } });
+      }
+    }
+    console.log(`${rooms.length} rooms with cleaning logs created`);
+  } else {
+    console.log(`${cleaningLogCount} cleaning logs exist`);
+  }
+
+  // Seed internal notes
+  const noteCount = await prisma.internalNote.count();
+  if (noteCount === 0) {
+    const guests = await prisma.guest.findMany({ take: 2 });
+    const reservations = await prisma.reservation.findMany({ take: 3 });
+
+    if (guests.length > 0) {
+      await prisma.internalNote.create({
+        data: {
+          content: 'Huésped preferencial, siempre solicita habitación tranquila con vista al jardín.',
+          authorName: 'Recepción',
+          guestId: guests[0].id,
+        },
+      });
+      console.log('Nota para huésped creada');
+    }
+
+    if (guests.length > 1) {
+      await prisma.internalNote.create({
+        data: {
+          content: 'Alergia al polvo. Solicitar limpieza especial con productos hipoalergénicos.',
+          authorName: 'María López',
+          guestId: guests[1].id,
+        },
+      });
+      console.log('Segunda nota para huésped creada');
+    }
+
+    if (reservations.length > 0) {
+      await prisma.internalNote.create({
+        data: {
+          content: 'Cliente VIP -庆祝 anniversary. Preparar champagne en la habitación.',
+          authorName: 'Gerencia',
+          reservationId: reservations[0].id,
+        },
+      });
+      console.log('Nota para reserva creada');
+    }
+
+    if (reservations.length > 1) {
+      await prisma.internalNote.create({
+        data: {
+          content: 'Late check-out solicitado hasta las 16:00. Confirmado con gerencia.',
+          authorName: 'Recepción',
+          reservationId: reservations[1].id,
+        },
+      });
+    }
+
+    if (reservations.length > 2) {
+      await prisma.internalNote.create({
+        data: {
+          content: 'Equipaje extra хранится в storage. Guests will pick up on departure day.',
+          authorName: 'Bellhop',
+          reservationId: reservations[2].id,
+        },
+      });
+    }
+
+    console.log('Notas internas de ejemplo creadas');
+  } else {
+    console.log(`${noteCount} notas internas existen`);
+  }
+
   console.log('Seed done');
   await prisma.$disconnect();
 }

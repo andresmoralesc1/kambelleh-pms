@@ -1,7 +1,8 @@
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
-import { Bed, TrendingUp, Users, CalendarDays, ArrowRight, Sunrise, Sun, Moon } from 'lucide-react';
+import { Bed, TrendingUp, Users, CalendarDays, ArrowRight, Sunrise, Sun, Moon, Download } from 'lucide-react';
 import { useDashboardStats } from '../hooks/useQueries';
+import { useExportReservations } from '../hooks/useExport';
 import { Link } from 'react-router-dom';
 import { formatCurrencyCompact } from '../utils/currency';
 
@@ -65,6 +66,7 @@ function ArrivalRow({ guest, room, checkIn }) {
 
 export default function Dashboard() {
   const { data, isLoading } = useDashboardStats();
+  const exportReservations = useExportReservations();
   const stats = data?.stats;
   const greeting = getGreeting();
   const GreetingIcon = greeting.icon;
@@ -86,11 +88,18 @@ export default function Dashboard() {
             <p className="text-surface-500 text-sm mt-0.5 capitalize">{dateStr}</p>
           </div>
         </div>
-        <Link to="/reservations/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
-          aria-label="Crear nueva reserva">
-          + Nueva reserva
-        </Link>
+        <div className="flex items-center gap-2">
+          <button onClick={exportReservations}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-surface-300 bg-white hover:bg-surface-50 text-surface-700 text-sm font-medium transition-colors"
+            aria-label="Exportar reservas del mes a CSV">
+            <Download className="w-4 h-4" aria-hidden="true" /> Exportar mes
+          </button>
+          <Link to="/reservations/new"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
+            aria-label="Crear nueva reserva">
+            + Nueva reserva
+          </Link>
+        </div>
       </header>
 
       {/* Stats */}

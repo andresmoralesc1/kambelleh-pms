@@ -8,10 +8,13 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Analytics from './pages/Analytics';
 import Rooms from './pages/Rooms';
+import Housekeeping from './pages/Housekeeping';
 import Reservations from './pages/Reservations';
 import Guests from './pages/Guests';
+import ChannelManager from './pages/ChannelManager';
 import Calendar from './pages/Calendar';
 import NewReservation from './pages/NewReservation';
+import Settings from './pages/Settings';
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30000, retry: 1 } } });
 
@@ -36,9 +39,12 @@ export default function App() {
                   <Route path="analytics" element={<Analytics />} />
                   <Route path="calendar" element={<Calendar />} />
                   <Route path="rooms" element={<Rooms />} />
+                  <Route path="housekeeping" element={<Housekeeping />} />
                   <Route path="reservations" element={<Reservations />} />
                   <Route path="reservations/new" element={<NewReservation />} />
                   <Route path="guests" element={<Guests />} />
+                  <Route path="settings" element={<Settings />} />
+                  <Route path="channels" element={<ChannelManager />} />
                 </Route>
               </Routes>
             </BrowserRouter>

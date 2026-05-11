@@ -48,3 +48,15 @@ export function parseCurrency(formatted) {
   if (typeof formatted === 'number') return formatted;
   return parseFloat(formatted.replace(/[$\s]/g, '').replace(',', '.')) || 0;
 }
+
+/**
+ * Format a date as short date string (e.g., "12/05/2026")
+ * @param {string|Date} date
+ * @returns {string}
+ */
+export function formatDateShort(date) {
+  if (!date) return '';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}

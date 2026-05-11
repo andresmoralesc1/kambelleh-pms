@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Load env
 dotenv.config();
@@ -16,6 +18,10 @@ import reservationRoutes from './routes/reservations.js';
 import guestRoutes from './routes/guests.js';
 import paymentRoutes from './routes/payments.js';
 import dashboardRoutes from './routes/dashboard.js';
+import exportsRoutes from './routes/exports.js';
+import internalNotesRoutes from './routes/internalNotes.js';
+import channelManagerRoutes from './routes/channelManager.js';
+import cleaningRoutes from './routes/cleaning.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import stripeWebhook from './routes/stripeWebhook.js';
 
@@ -56,9 +62,22 @@ app.use('/api/reservations', reservationRoutes);
 app.use('/api/guests', guestRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/exports', exportsRoutes);
+app.use('/api/notes', internalNotesRoutes);
+app.use('/api/channels', channelManagerRoutes);
+app.use('/api/cleaning', cleaningRoutes);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
+// Serve frontend static files in production
+if (process.env.NODE_ENV === 'production') {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  app.use(express.static(path.join(__dirname, '../public')));
+  app.get('*', (_, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+  });
+}
 
 // ================== ERROR HANDLER ==================
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Calendar, DoorOpen, BookCheck, Users, LogOut, Bed, Menu, X, Sun, Moon, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, Calendar, DoorOpen, BookCheck, Users, LogOut, Bed, Menu, X, Sun, Moon, BarChart2, SprayCan, Settings, Link } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -9,8 +9,11 @@ const navItems = [
   { to: '/analytics', icon: BarChart2, label: 'Analíticas' },
   { to: '/calendar', icon: Calendar, label: 'Calendario' },
   { to: '/rooms', icon: DoorOpen, label: 'Habitaciones' },
+  { to: '/housekeeping', icon: SprayCan, label: 'Limpieza' },
   { to: '/reservations', icon: BookCheck, label: 'Reservas' },
   { to: '/guests', icon: Users, label: 'Huéspedes' },
+  { to: '/channels', icon: Link, label: 'Canales' },
+  { to: '/settings', icon: Settings, label: 'Configuración' },
 ];
 
 export default function Layout() {
