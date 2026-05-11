@@ -1,7 +1,15 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
 
-const ToastContext = createContext();
+const ToastContext = createContext(null);
+
+// Module-level toast object so consumers can import { toast } and use it
+const toast = {
+  success: () => {},
+  error: () => {},
+  warning: () => {},
+  info: () => {},
+};
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
@@ -21,12 +29,13 @@ export function ToastProvider({ children }) {
     setToasts(prev => prev.filter(t => t.id !== id));
   }, []);
 
-  const toast = {
-    success: (msg, dur) => addToast(msg, 'success', dur),
-    error: (msg, dur) => addToast(msg, 'error', dur ?? 6000),
-    warning: (msg, dur) => addToast(msg, 'warning', dur),
-    info: (msg, dur) => addToast(msg, 'info', dur),
-  };
+  // Update the module-level toast object methods
+  useEffect(() => {
+    toast.success = (msg, dur) => addToast(msg, 'success', dur);
+    toast.error = (msg, dur) => addToast(msg, 'error', dur ?? 6000);
+    toast.warning = (msg, dur) => addToast(msg, 'warning', dur);
+    toast.info = (msg, dur) => addToast(msg, 'info', dur);
+  }, [addToast]);
 
   return (
     <ToastContext.Provider value={toast}>
@@ -36,6 +45,7 @@ export function ToastProvider({ children }) {
   );
 }
 
+export { toast };
 export function useToast() {
   return useContext(ToastContext);
 }
@@ -65,18 +75,18 @@ function ToastContainer({ toasts, onRemove }) {
   if (toasts.length === 0) return null;
   return (
     <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 max-w-sm" role="region" aria-label="Notificaciones">
-      {toasts.map(toast => {
-        const Icon = icons[toast.type] || icons.info;
+      {toasts.map(t => {
+        const Icon = icons[t.type] || icons.info;
         return (
           <div
-            key={toast.id}
+            key={t.id}
             role="alert"
-            className={`flex items-start gap-3 px-4 py-3 rounded-xl border shadow-lg animate-in slide-in-from-right ${styles[toast.type] || styles.info}`}
+            className={`flex items-start gap-3 px-4 py-3 rounded-xl border shadow-lg animate-in slide-in-from-right ${styles[t.type] || styles.info}`}
           >
-            <Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${iconStyles[toast.type]}`} />
-            <p className="text-sm font-medium flex-1">{toast.message}</p>
+            <Icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${iconStyles[t.type]}`} />
+            <p className="text-sm font-medium flex-1">{t.message}</p>
             <button
-              onClick={() => onRemove(toast.id)}
+              onClick={() => onRemove(t.id)}
               className="p-0.5 rounded hover:bg-black/10 transition-colors flex-shrink-0"
               aria-label="Cerrar notificación"
             >
