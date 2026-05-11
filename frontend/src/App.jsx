@@ -15,6 +15,7 @@ import ChannelManager from './pages/ChannelManager';
 import Calendar from './pages/Calendar';
 import NewReservation from './pages/NewReservation';
 import Settings from './pages/Settings';
+import Staff from './pages/Staff';
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30000, retry: 1 } } });
 
@@ -22,6 +23,14 @@ function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin h-8 w-8 border-4 border-primary-500 border-t-transparent rounded-full" /></div>;
   return user ? children : <Navigate to="/login" />;
+}
+
+function AdminRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin h-8 w-8 border-4 border-primary-500 border-t-transparent rounded-full" /></div>;
+  if (!user) return <Navigate to="/login" />;
+  if (user.role !== 'ADMIN') return <Navigate to="/dashboard" />;
+  return children;
 }
 
 export default function App() {
@@ -45,6 +54,7 @@ export default function App() {
                   <Route path="guests" element={<Guests />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="channels" element={<ChannelManager />} />
+                  <Route path="staff" element={<AdminRoute><Staff /></AdminRoute>} />
                 </Route>
               </Routes>
             </BrowserRouter>

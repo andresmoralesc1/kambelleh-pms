@@ -1,10 +1,11 @@
 import express from 'express';
 import prisma from '../config/database.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // GET /api/settings - Devuelve todos los settings como objeto { key: value }
-router.get('/', async (req, res, next) => {
+router.get('/', authenticate, authorize('ADMIN'), async (req, res, next) => {
   try {
     const settings = await prisma.setting.findMany();
     const result = {};
@@ -18,7 +19,7 @@ router.get('/', async (req, res, next) => {
 });
 
 // GET /api/settings/:key - Devuelve un setting específico
-router.get('/:key', async (req, res, next) => {
+router.get('/:key', authenticate, authorize('ADMIN'), async (req, res, next) => {
   try {
     const setting = await prisma.setting.findUnique({
       where: { key: req.params.key },
@@ -33,7 +34,7 @@ router.get('/:key', async (req, res, next) => {
 });
 
 // PUT /api/settings - Actualiza uno o más settings { key: value }
-router.put('/', async (req, res, next) => {
+router.put('/', authenticate, authorize('ADMIN'), async (req, res, next) => {
   try {
     const updates = req.body; // { key1: value1, key2: value2 }
 

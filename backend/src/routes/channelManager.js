@@ -1,7 +1,7 @@
 import express from 'express';
 import crypto from 'crypto';
 import prisma from '../config/database.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 import airbnbService from '../services/airbnbService.js';
 
 const router = express.Router();
@@ -14,7 +14,7 @@ let airbnbState = {
 };
 
 // GET /api/channels/airbnb/status
-router.get('/airbnb/status', authenticate, async (req, res) => {
+router.get('/airbnb/status', authenticate, authorize('ADMIN'), async (req, res) => {
   const isMock = process.env.AIRBNB_MOCK === 'true';
   const connected = isMock || airbnbService.isConnected();
 
@@ -27,7 +27,7 @@ router.get('/airbnb/status', authenticate, async (req, res) => {
 });
 
 // POST /api/channels/airbnb/connect
-router.post('/airbnb/connect', authenticate, async (req, res) => {
+router.post('/airbnb/connect', authenticate, authorize('ADMIN'), async (req, res) => {
   const isMock = process.env.AIRBNB_MOCK === 'true';
 
   if (isMock) {
@@ -60,7 +60,7 @@ router.post('/airbnb/connect', authenticate, async (req, res) => {
 });
 
 // POST /api/channels/airbnb/disconnect
-router.post('/airbnb/disconnect', authenticate, async (req, res) => {
+router.post('/airbnb/disconnect', authenticate, authorize('ADMIN'), async (req, res) => {
   const isMock = process.env.AIRBNB_MOCK === 'true';
 
   airbnbService.disconnect();
@@ -74,7 +74,7 @@ router.post('/airbnb/disconnect', authenticate, async (req, res) => {
 });
 
 // POST /api/channels/airbnb/sync
-router.post('/airbnb/sync', authenticate, async (req, res) => {
+router.post('/airbnb/sync', authenticate, authorize('ADMIN'), async (req, res) => {
   const isMock = process.env.AIRBNB_MOCK === 'true';
 
   try {

@@ -1,7 +1,7 @@
 import express from 'express';
 import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, subMonths, eachMonthOfInterval, startOfMonth as startM, endOfMonth as endM } from 'date-fns';
 import prisma from '../config/database.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -120,7 +120,7 @@ router.get('/calendar', authenticate, async (req, res, next) => {
 });
 
 // GET /api/dashboard/analytics?months=6
-router.get('/analytics', authenticate, async (req, res, next) => {
+router.get('/analytics', authenticate, authorize('ADMIN', 'MANAGER'), async (req, res, next) => {
   try {
     const months = Math.min(parseInt(req.query.months) || 6, 12);
     const today = new Date();

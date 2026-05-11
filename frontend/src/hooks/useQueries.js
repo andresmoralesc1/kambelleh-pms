@@ -80,6 +80,61 @@ export function useDeleteGuest() {
   return useMutation({ mutationFn: api.deleteGuest, onSuccess: () => qc.invalidateQueries({ queryKey: ['guests'] }) });
 }
 
+// Users / Staff
+export function useUsers() {
+  return useQuery({ queryKey: ['users'], queryFn: () => api.getUsers().then(r => r.data), placeholderData: { users: [] } });
+}
+export function useCreateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.createUser,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      toast.success('Usuario creado correctamente');
+    },
+    onError: () => {
+      toast.error('Error al crear el usuario');
+    },
+  });
+}
+export function useUpdateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }) => api.updateUser(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      toast.success('Usuario actualizado correctamente');
+    },
+    onError: () => {
+      toast.error('Error al actualizar el usuario');
+    },
+  });
+}
+export function useDeleteUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.deleteUser,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] });
+      toast.success('Usuario eliminado correctamente');
+    },
+    onError: () => {
+      toast.error('Error al eliminar el usuario');
+    },
+  });
+}
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: ({ id, data }) => api.changePassword(id, data),
+    onSuccess: () => {
+      toast.success('Contraseña actualizada correctamente');
+    },
+    onError: () => {
+      toast.error('Error al cambiar la contraseña');
+    },
+  });
+}
+
 // Dashboard
 export function useDashboardStats() {
   return useQuery({ queryKey: keys.dashboard(), queryFn: () => api.getDashboardStats().then(r => r.data), refetchInterval: 60000 });

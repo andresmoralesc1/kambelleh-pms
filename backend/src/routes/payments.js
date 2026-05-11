@@ -3,7 +3,15 @@ import Stripe from 'stripe';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Lazy initialization to avoid crashing when STRIPE_SECRET_KEY is not set
+let stripe = null;
+const getStripe = () => {
+  if (!stripe && process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
+  return stripe;
+};
+
 const router = express.Router();
 
 // POST /api/payments/create-intent
@@ -21,7 +29,10 @@ router.post('/create-intent', authenticate, async (req, res, next) => {
       return res.status(409).json({ error: 'Esta reserva ya tiene un pago asociado' });
     }
 
-    const paymentIntent = await stripe.paymentIntents.create({
+    const client = getStripe();
+    if (!client) return res.status(500).json({ error: 'Stripe not configured' });
+
+    const paymentIntent = await client.paymentIntents.create({
       amount: Math.round(Number(reservation.totalAmount) * 100), // cents
       currency: 'eur',
       metadata: {
@@ -128,7 +139,10 @@ router.post('/refund', authenticate, authorize('ADMIN'), async (req, res, next) 
       return res.status(409).json({ error: 'El pago no está completado' });
     }
 
-    await stripe.refunds.create({ payment_intent: payment.stripeChargeId });
+    const client = getStripe();
+    if (!client) return res.status(500).json({ error: 'Stripe not configured' });
+
+    await client.refunds.create({ payment_intent: payment.stripeChargeId });
 
     await prisma.payment.update({
       where: { id: paymentId },

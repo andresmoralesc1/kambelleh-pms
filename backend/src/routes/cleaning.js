@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../config/database.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -47,7 +47,7 @@ router.get('/rooms/:id/cleaning-logs', authenticate, async (req, res, next) => {
 });
 
 // PATCH /api/cleaning/rooms/:id/cleaning-status
-router.patch('/rooms/:id/cleaning-status', authenticate, async (req, res, next) => {
+router.patch('/rooms/:id/cleaning-status', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -72,7 +72,7 @@ router.patch('/rooms/:id/cleaning-status', authenticate, async (req, res, next) 
 });
 
 // POST /api/cleaning/rooms/:id/cleaning-logs
-router.post('/rooms/:id/cleaning-logs', authenticate, async (req, res, next) => {
+router.post('/rooms/:id/cleaning-logs', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
   try {
     const { id } = req.params;
     const { performedBy, status, notes } = req.body;

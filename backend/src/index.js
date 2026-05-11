@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url';
 dotenv.config();
 
 import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
 import roomRoutes from './routes/rooms.js';
 import reservationRoutes from './routes/reservations.js';
 import guestRoutes from './routes/guests.js';
@@ -57,6 +58,7 @@ app.use('/api', limiter);
 // ================== ROUTES ==================
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/guests', guestRoutes);

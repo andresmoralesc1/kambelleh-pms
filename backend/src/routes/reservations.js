@@ -40,8 +40,8 @@ router.get('/', authenticate, async (req, res, next) => {
 // GET /api/reservations/:id
 router.get('/:id', authenticate, async (req, res, next) => {
   try {
-    // IDOR fix: users can only view their own reservations unless ADMIN
-    if (req.user.role !== 'ADMIN' && req.user.role !== 'RECEPTIONIST') {
+    // IDOR fix: users can only view their own reservations unless ADMIN or MANAGER or RECEPCIONIST
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'MANAGER' && req.user.role !== 'RECEPTIONIST') {
       return res.status(403).json({ error: 'No tienes permisos para ver esta reserva' });
     }
 
@@ -149,8 +149,8 @@ router.put('/:id', authenticate, async (req, res, next) => {
     const current = await prisma.reservation.findUnique({ where: { id: req.params.id } });
     if (!current) return res.status(404).json({ error: 'Reserva no encontrada' });
 
-    // IDOR: only ADMIN/RECEPTIONIST or the creator can modify
-    if (req.user.role !== 'ADMIN' && req.user.role !== 'RECEPTIONIST' && current.createdById !== req.user.id) {
+    // IDOR: only ADMIN/MANAGER/RECEPTIONIST or the creator can modify
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'MANAGER' && req.user.role !== 'RECEPTIONIST' && current.createdById !== req.user.id) {
       return res.status(403).json({ error: 'No tienes permisos para modificar esta reserva' });
     }
 
@@ -224,8 +224,8 @@ router.patch('/:id/status', authenticate, async (req, res, next) => {
     const reservation = await prisma.reservation.findUnique({ where: { id: req.params.id } });
     if (!reservation) return res.status(404).json({ error: 'Reserva no encontrada' });
 
-    // IDOR: only ADMIN/RECEPTIONIST or the creator can change status
-    if (req.user.role !== 'ADMIN' && req.user.role !== 'RECEPTIONIST' && reservation.createdById !== req.user.id) {
+    // IDOR: only ADMIN/MANAGER/RECEPTIONIST or the creator can change status
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'MANAGER' && req.user.role !== 'RECEPTIONIST' && reservation.createdById !== req.user.id) {
       return res.status(403).json({ error: 'No tienes permisos para cambiar el estado de esta reserva' });
     }
 

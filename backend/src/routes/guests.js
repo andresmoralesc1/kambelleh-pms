@@ -5,7 +5,7 @@ import { authenticate, authorize } from '../middleware/auth.js';
 const router = express.Router();
 
 // GET /api/guests
-router.get('/', authenticate, async (req, res, next) => {
+router.get('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
   try {
     const { search, limit = 50 } = req.query;
 
@@ -40,7 +40,7 @@ router.get('/', authenticate, async (req, res, next) => {
 });
 
 // GET /api/guests/:id
-router.get('/:id', authenticate, async (req, res, next) => {
+router.get('/:id', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
   try {
     const guest = await prisma.guest.findUnique({
       where: { id: req.params.id },
@@ -94,7 +94,7 @@ router.put('/:id', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req,
 });
 
 // GET /api/guests/:id/history
-router.get('/:id/history', authenticate, async (req, res, next) => {
+router.get('/:id/history', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
   try {
     const reservations = await prisma.reservation.findMany({
       where: { guestId: req.params.id },

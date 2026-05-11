@@ -1,6 +1,6 @@
 import express from 'express';
 import prisma from '../config/database.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -32,7 +32,7 @@ const toCSV = (rows, headers) => {
 };
 
 // GET /api/exports/reservations
-router.get('/reservations', authenticate, async (req, res, next) => {
+router.get('/reservations', authenticate, authorize('ADMIN', 'MANAGER'), async (req, res, next) => {
   try {
     const reservations = await prisma.reservation.findMany({
       include: {
@@ -70,7 +70,7 @@ router.get('/reservations', authenticate, async (req, res, next) => {
 });
 
 // GET /api/exports/guests
-router.get('/guests', authenticate, async (req, res, next) => {
+router.get('/guests', authenticate, authorize('ADMIN', 'MANAGER'), async (req, res, next) => {
   try {
     const guests = await prisma.guest.findMany({
       include: {
@@ -110,7 +110,7 @@ router.get('/guests', authenticate, async (req, res, next) => {
 });
 
 // GET /api/exports/rooms
-router.get('/rooms', authenticate, async (req, res, next) => {
+router.get('/rooms', authenticate, authorize('ADMIN', 'MANAGER'), async (req, res, next) => {
   try {
     const rooms = await prisma.room.findMany({
       orderBy: [{ floor: 'asc' }, { number: 'asc' }],

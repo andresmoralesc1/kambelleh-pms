@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = Router();
 const prisma = new PrismaClient();
 
 // GET /api/notes?guestId=X -> lista notas de un huésped
 // GET /api/notes?reservationId=X -> lista notas de una reserva
-router.get('/', async (req, res) => {
+router.get('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res) => {
   const { guestId, reservationId } = req.query;
   try {
     const where = {};
@@ -24,7 +25,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/notes -> crear nota { content, authorName, guestId?, reservationId? }
-router.post('/', async (req, res) => {
+router.post('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res) => {
   const { content, authorName, guestId, reservationId } = req.body;
   if (!content || !authorName) {
     return res.status(400).json({ error: 'Contenido y nombre del autor son requeridos' });
@@ -46,7 +47,7 @@ router.post('/', async (req, res) => {
 });
 
 // DELETE /api/notes/:id -> eliminar nota
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res) => {
   const { id } = req.params;
   try {
     await prisma.internalNote.delete({ where: { id } });

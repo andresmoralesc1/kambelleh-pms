@@ -3,17 +3,31 @@ import Stripe from 'stripe';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+// Lazy initialization to avoid crashing when STRIPE_SECRET_KEY is not set
+let stripe = null;
+const getStripe = () => {
+  if (!stripe && process.env.STRIPE_SECRET_KEY) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
+  return stripe;
+};
+
 const router = express.Router();
 
 // POST /api/payments/webhook
 // Stripe calls this with raw body - route already configured in index.js
 async function stripeWebhook(req, res) {
+  const client = getStripe();
+  if (!client) {
+    console.error('Stripe not configured - webhook skipped');
+    return res.status(500).send('Stripe not configured');
+  }
+
   const sig = req.headers['stripe-signature'];
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(
+    event = client.webhooks.constructEvent(
       req.body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET

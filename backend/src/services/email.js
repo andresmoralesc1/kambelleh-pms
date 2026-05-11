@@ -1,6 +1,13 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid throwing at module load time when key is missing
+let resend = null;
+const getResend = () => {
+  if (!resend && process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+};
 
 const HOTEL_NAME = process.env.HOTEL_NAME || 'Kambelleh';
 const HOTEL_EMAIL = process.env.HOTEL_EMAIL || 'reservas@kambelleh.com';
@@ -107,10 +114,11 @@ export async function sendReservationConfirmation(guest, reservation, room, send
   `;
 
   try {
+    const client = getResend();
     if (sendgrid) {
       await sendgrid.send({ to: guest?.email, subject, html: wrapEmail(html) });
-    } else if (process.env.RESEND_API_KEY) {
-      await resend.emails.send({
+    } else if (client) {
+      await client.emails.send({
         from: `${HOTEL_NAME} <${HOTEL_EMAIL}>`,
         to: guest?.email || '',
         subject,
@@ -162,8 +170,9 @@ export async function sendCheckinReminder(guest, reservation, room) {
   `;
 
   try {
-    if (process.env.RESEND_API_KEY) {
-      await resend.emails.send({
+    const client = getResend();
+    if (client) {
+      await client.emails.send({
         from: `${HOTEL_NAME} <${HOTEL_EMAIL}>`,
         to: guest?.email || '',
         subject,
@@ -207,8 +216,9 @@ export async function sendCheckoutReminder(guest, reservation, room) {
   `;
 
   try {
-    if (process.env.RESEND_API_KEY) {
-      await resend.emails.send({
+    const client = getResend();
+    if (client) {
+      await client.emails.send({
         from: `${HOTEL_NAME} <${HOTEL_EMAIL}>`,
         to: guest?.email || '',
         subject,
@@ -264,8 +274,9 @@ export async function sendInvoice(guest, reservation, room, payment) {
   `;
 
   try {
-    if (process.env.RESEND_API_KEY) {
-      await resend.emails.send({
+    const client = getResend();
+    if (client) {
+      await client.emails.send({
         from: `${HOTEL_NAME} <${HOTEL_EMAIL}>`,
         to: guest?.email || '',
         subject,

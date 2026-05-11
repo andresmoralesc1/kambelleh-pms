@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -8,12 +8,41 @@ async function seed() {
   if (!existing) {
     const hashed = await bcrypt.hash('admin123', 10);
     await prisma.user.create({
-      data: { name: 'Admin', email: 'admin@kambelleh.com', passwordHash: hashed, role: 'ADMIN' },
+      data: { name: 'Admin', email: 'admin@kambelleh.com', passwordHash: hashed, role: Role.ADMIN },
     });
     console.log('Admin created');
   } else {
     console.log('Admin exists');
   }
+
+  // Create MANAGER user
+  const managerExists = await prisma.user.findUnique({ where: { email: 'manager@kambelleh.com' } });
+  if (!managerExists) {
+    const hashed = await bcrypt.hash('manager123', 10);
+    await prisma.user.create({
+      data: { name: 'Gerencia Kambelleh', email: 'manager@kambelleh.com', passwordHash: hashed, role: Role.MANAGER },
+    });
+    console.log('Manager created');
+  } else {
+    console.log('Manager exists');
+  }
+
+  // Create RECEPTIONIST user
+  const receptionistExists = await prisma.user.findUnique({ where: { email: 'reception@kambelleh.com' } });
+  if (!receptionistExists) {
+    const hashed = await bcrypt.hash('recepcion123', 10);
+    await prisma.user.create({
+      data: { name: 'Recepción Kambelleh', email: 'reception@kambelleh.com', passwordHash: hashed, role: Role.RECEPCIONIST },
+    });
+    console.log('Receptionist created');
+  } else {
+    console.log('Receptionist exists');
+  }
+
+  // Get users for createdById
+  const adminUser = await prisma.user.findUnique({ where: { email: 'admin@kambelleh.com' } });
+  const managerUser = await prisma.user.findUnique({ where: { email: 'manager@kambelleh.com' } });
+  const receptionistUser = await prisma.user.findUnique({ where: { email: 'reception@kambelleh.com' } });
 
   const roomCount = await prisma.room.count();
   if (roomCount === 0) {
@@ -79,6 +108,7 @@ async function seed() {
           adults: r.adults,
           children: r.children,
           totalAmount: r.totalAmount,
+          createdById: adminUser?.id || null,
         },
       });
 

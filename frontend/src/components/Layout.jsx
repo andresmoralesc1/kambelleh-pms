@@ -4,23 +4,30 @@ import { LayoutDashboard, Calendar, DoorOpen, BookCheck, Users, LogOut, Bed, Men
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
-const navItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/analytics', icon: BarChart2, label: 'Analíticas' },
-  { to: '/calendar', icon: Calendar, label: 'Calendario' },
-  { to: '/rooms', icon: DoorOpen, label: 'Habitaciones' },
-  { to: '/housekeeping', icon: SprayCan, label: 'Limpieza' },
-  { to: '/reservations', icon: BookCheck, label: 'Reservas' },
-  { to: '/guests', icon: Users, label: 'Huéspedes' },
-  { to: '/channels', icon: Link, label: 'Canales' },
-  { to: '/settings', icon: Settings, label: 'Configuración' },
-];
-
 export default function Layout() {
   const { user, logout } = useAuth();
   const { dark, toggle } = useTheme();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Role-based visibility
+  const canSeeAnalytics = ['ADMIN', 'MANAGER'].includes(user?.role);
+  const canSeeChannels = user?.role === 'ADMIN';
+  const canSeeSettings = user?.role === 'ADMIN';
+  const canSeeStaff = user?.role === 'ADMIN';
+
+  const navItems = [
+    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    ...(canSeeAnalytics ? [{ to: '/analytics', icon: BarChart2, label: 'Analíticas' }] : []),
+    { to: '/calendar', icon: Calendar, label: 'Calendario' },
+    { to: '/rooms', icon: DoorOpen, label: 'Habitaciones' },
+    { to: '/housekeeping', icon: SprayCan, label: 'Limpieza' },
+    { to: '/reservations', icon: BookCheck, label: 'Reservas' },
+    { to: '/guests', icon: Users, label: 'Huéspedes' },
+    ...(canSeeChannels ? [{ to: '/channels', icon: Link, label: 'Canales' }] : []),
+    ...(canSeeSettings ? [{ to: '/settings', icon: Settings, label: 'Configuración' }] : []),
+    ...(canSeeStaff ? [{ to: '/staff', icon: Users, label: 'Personal' }] : []),
+  ];
 
   const handleLogout = async () => {
     await logout();
