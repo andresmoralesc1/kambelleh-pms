@@ -64,32 +64,50 @@ router.get('/stats', authenticate, async (req, res, next) => {
   }
 });
 
-// GET /api/dashboard/calendar?month=2025-06
+// GET /api/dashboard/calendar?month=2025-06&roomId=uuid&status=CHECKED_IN
 router.get('/calendar', authenticate, async (req, res, next) => {
   try {
-    const { month } = req.query;
+    const { month, roomId, status } = req.query;
     const date = month ? new Date(`${month}-01`) : new Date();
     const start = startOfMonth(date);
     const end = endOfMonth(date);
 
-    const reservations = await prisma.reservation.findMany({
-      where: {
-        checkIn: { lte: end },
-        checkOut: { gte: start },
-      },
-      include: {
-        guest: { select: { name: true } },
-        room: { select: { id: true, number: true, name: true } },
-      },
-      orderBy: { checkIn: 'asc' },
-    });
+    // Default active statuses — allow override via ?status=...
+    const activeStatuses = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT'];
+    const statusFilter = status ? status.split(',') : activeStatuses;
 
-    const blockedDates = await prisma.blockedDate.findMany({
-      where: { date: { gte: start, lte: end } },
-      include: { room: { select: { number: true } } },
-    });
+    const whereReservation = {
+      checkIn: { lte: end },
+      checkOut: { gte: start },
+      ...(roomId && { roomId }),
+      ...(status && { status: { in: statusFilter } }),
+    };
 
-    res.json({ reservations, blockedDates });
+    const [reservations, blockedDates, rooms] = await Promise.all([
+      prisma.reservation.findMany({
+        where: whereReservation,
+        include: {
+          guest: { select: { id: true, name: true, vip: true, blacklist: true } },
+          room: { select: { id: true, number: true, name: true } },
+          createdBy: { select: { name: true } },
+        },
+        orderBy: [{ checkIn: 'asc' }],
+      }),
+      prisma.blockedDate.findMany({
+        where: {
+          date: { gte: start, lte: end },
+          ...(roomId && { roomId }),
+        },
+        include: { room: { select: { id: true, number: true } } },
+      }),
+      // Rooms list for the filter dropdown
+      prisma.room.findMany({
+        select: { id: true, number: true, name: true, type: true },
+        orderBy: [{ floor: 'asc' }, { number: 'asc' }],
+      }),
+    ]);
+
+    res.json({ reservations, blockedDates, rooms });
   } catch (err) {
     next(err);
   }

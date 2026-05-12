@@ -139,8 +139,12 @@ export function useChangePassword() {
 export function useDashboardStats() {
   return useQuery({ queryKey: keys.dashboard(), queryFn: () => api.getDashboardStats().then(r => r.data), refetchInterval: 60000 });
 }
-export function useDashboardCalendar(month) {
-  return useQuery({ queryKey: keys.calendar(month), queryFn: () => api.getDashboardCalendar({ month }).then(r => r.data), enabled: !!month });
+export function useDashboardCalendar(month, roomId, status) {
+  return useQuery({
+    queryKey: keys.calendar(month),
+    queryFn: () => api.getDashboardCalendar({ month, ...(roomId && { roomId }), ...(status && { status }) }).then(r => r.data),
+    enabled: !!month,
+  });
 }
 
 // Payments
