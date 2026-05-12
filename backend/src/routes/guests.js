@@ -1,6 +1,7 @@
 import express from 'express';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { logActivity } from '../utils/logActivity.js';
 
 const router = express.Router();
 
@@ -72,6 +73,8 @@ router.post('/', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, r
     });
 
     res.status(201).json({ guest });
+
+    logActivity({ userId: req.user.id, action: 'CREATED', resource: 'GUEST', resourceId: guest.id, details: { name, email }, ipAddress: req.ip });
   } catch (err) {
     next(err);
   }
@@ -88,6 +91,8 @@ router.put('/:id', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req,
     });
 
     res.json({ guest });
+
+    logActivity({ userId: req.user.id, action: 'UPDATED', resource: 'GUEST', resourceId: req.params.id, details: { name, email }, ipAddress: req.ip });
   } catch (err) {
     next(err);
   }

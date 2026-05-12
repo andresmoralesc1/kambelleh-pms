@@ -347,15 +347,23 @@ export default function Reservations() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
-  const { data, isLoading } = useReservations();
+  const [page, setPage] = useState(1);
+  const LIMIT = 20;
+  const { data, isLoading } = useReservations({ page, limit: LIMIT });
   const exportReservations = useExportReservations();
 
   const reservations = data?.reservations || [];
+  const total = data?.total ?? 0;
+  const totalPages = data?.totalPages ?? 1;
   const filtered = reservations.filter(r => {
     const matchStatus = statusFilter === 'ALL' || r.status === statusFilter;
     const matchSearch = !search || r.guest?.name?.toLowerCase().includes(search.toLowerCase()) || r.room?.number?.includes(search);
     return matchStatus && matchSearch;
   });
+
+  // Reset to page 1 when filters change
+  const handleStatusFilter = (s) => { setStatusFilter(s); setPage(1); };
+  const handleSearch = (e) => { setSearch(e.target.value); setPage(1); };
 
   const statusFilters = ['ALL', 'PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED'];
   const statusLabels = { ALL: 'Todas', PENDING: 'Pendiente', CONFIRMED: 'Confirmada', CHECKED_IN: 'Check-in', CHECKED_OUT: 'Check-out', CANCELLED: 'Cancelada' };
@@ -366,7 +374,7 @@ export default function Reservations() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-surface-900">Reservas</h1>
-          <p className="text-surface-500 text-sm mt-0.5">{filtered.length} reservas</p>
+          <p className="text-surface-500 text-sm mt-0.5">{total} reservas</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportReservations}
@@ -387,13 +395,13 @@ export default function Reservations() {
         <div className="relative flex-1">
           <label htmlFor="reservation-search" className="sr-only">Buscar reservas</label>
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" aria-hidden="true" />
-          <input id="reservation-search" value={search} onChange={e => setSearch(e.target.value)}
+          <input id="reservation-search" value={search} onChange={handleSearch}
             placeholder="Buscar por huésped o habitación..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow" />
         </div>
         <div className="flex gap-2 flex-wrap" role="group" aria-label="Filtrar por estado">
           {statusFilters.map(s => (
-            <button key={s} onClick={() => setStatusFilter(s)}
+            <button key={s} onClick={() => handleStatusFilter(s)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 statusFilter === s ? 'bg-surface-800 text-white' : 'bg-white border border-surface-200 text-surface-600 hover:bg-surface-50'
               }`}
@@ -418,7 +426,8 @@ export default function Reservations() {
           </p>
         </div>
       ) : (
-        /* Table */
+        <>
+          {/* Table */}
         <div className="bg-white rounded-2xl border border-surface-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px]" role="table" aria-label="Lista de reservas">
@@ -465,6 +474,32 @@ export default function Reservations() {
             </table>
           </div>
         </div>
+
+        {!isLoading && totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-surface-200">
+            <p className="text-sm text-surface-600">
+              Página <span className="font-medium text-surface-900">{page}</span> de <span className="font-medium text-surface-900">{totalPages}</span>
+              &nbsp;—&nbsp;{total} reservas en total
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="px-3 py-1.5 rounded-lg border border-surface-300 text-sm font-medium text-surface-700 hover:bg-surface-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-label="Página anterior">
+                Anterior
+              </button>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="px-3 py-1.5 rounded-lg border border-surface-300 text-sm font-medium text-surface-700 hover:bg-surface-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-label="Página siguiente">
+                Siguiente
+              </button>
+            </div>
+          </div>
+        )}
+        </>
       )}
 
       {selected && <ReservationModal reservation={selected} onClose={() => setSelected(null)} />}

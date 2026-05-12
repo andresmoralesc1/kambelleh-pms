@@ -2,6 +2,7 @@ import express from 'express';
 import Stripe from 'stripe';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { logActivity } from '../utils/logActivity.js';
 
 // Lazy initialization to avoid crashing when STRIPE_SECRET_KEY is not set
 let stripe = null;
@@ -90,6 +91,8 @@ router.post('/confirm', authenticate, async (req, res, next) => {
     ]);
 
     res.json({ payment });
+
+    logActivity({ userId: req.user.id, action: 'PAYMENT_COMPLETED', resource: 'PAYMENT', resourceId: payment.id, details: { reservationId, amount: reservation.totalAmount }, ipAddress: req.ip });
   } catch (err) {
     next(err);
   }

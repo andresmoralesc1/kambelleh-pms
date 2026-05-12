@@ -29,6 +29,7 @@ model User {
   reservationsCreated Reservation[] @relation("CreatedBy")
   refreshTokens RefreshToken[]
   activityLogs ActivityLog[]
+  cleaningLogs CleaningLog[]
 
   @@map("users")
 }
@@ -208,15 +209,18 @@ model BlockedDate {
 model CleaningLog {
   id          String        @id @default(uuid())
   roomId      String        @map("room_id")
+  staffId     String?       @map("staff_id")
   performedBy String        @map("performed_by")
   status      CleaningStatus
   notes       String?
   createdAt   DateTime      @default(now()) @map("created_at")
   completedAt DateTime?     @map("completed_at")
 
-  room Room @relation(fields: [roomId], references: [id])
+  room  Room  @relation(fields: [roomId], references: [id])
+  staff User? @relation(fields: [staffId], references: [id])
 
   @@index([roomId])
+  @@index([staffId])
   @@index([createdAt])
   @@map("cleaning_logs")
 }

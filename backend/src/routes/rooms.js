@@ -1,6 +1,7 @@
 import express from 'express';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { logActivity } from '../utils/logActivity.js';
 
 const router = express.Router();
 
@@ -59,6 +60,8 @@ router.post('/', authenticate, authorize('ADMIN'), async (req, res, next) => {
     });
 
     res.status(201).json({ room });
+
+    logActivity({ userId: req.user.id, action: 'CREATED', resource: 'ROOM', resourceId: room.id, details: { number, name, type }, ipAddress: req.ip });
   } catch (err) {
     next(err);
   }
@@ -75,6 +78,8 @@ router.put('/:id', authenticate, authorize('ADMIN'), async (req, res, next) => {
     });
 
     res.json({ room });
+
+    logActivity({ userId: req.user.id, action: 'UPDATED', resource: 'ROOM', resourceId: req.params.id, details: { number, name, status }, ipAddress: req.ip });
   } catch (err) {
     next(err);
   }
@@ -94,6 +99,8 @@ router.delete('/:id', authenticate, authorize('ADMIN'), async (req, res, next) =
 
     await prisma.room.delete({ where: { id: req.params.id } });
     res.json({ message: 'Room deleted' });
+
+    logActivity({ userId: req.user.id, action: 'DELETED', resource: 'ROOM', resourceId: req.params.id, details: null, ipAddress: req.ip });
   } catch (err) {
     next(err);
   }

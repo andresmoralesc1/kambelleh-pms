@@ -23,6 +23,7 @@ import exportsRoutes from './routes/exports.js';
 import internalNotesRoutes from './routes/internalNotes.js';
 import channelManagerRoutes from './routes/channelManager.js';
 import cleaningRoutes from './routes/cleaning.js';
+import activityLogRoutes from './routes/activityLog.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import stripeWebhook from './routes/stripeWebhook.js';
 
@@ -79,6 +80,7 @@ app.use('/api/exports', exportsRoutes);
 app.use('/api/notes', internalNotesRoutes);
 app.use('/api/channels', channelManagerRoutes);
 app.use('/api/cleaning', cleaningRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));

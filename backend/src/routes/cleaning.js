@@ -38,6 +38,7 @@ router.get('/rooms/:id/cleaning-logs', authenticate, async (req, res, next) => {
       where: { roomId: id },
       orderBy: { createdAt: 'desc' },
       take: parseInt(limit),
+      include: { staff: { select: { id: true, name: true, email: true } } },
     });
 
     res.json({ logs });
@@ -75,7 +76,7 @@ router.patch('/rooms/:id/cleaning-status', authenticate, authorize('ADMIN', 'MAN
 router.post('/rooms/:id/cleaning-logs', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { performedBy, status, notes } = req.body;
+    const { performedBy, status, notes, staffId } = req.body;
 
     if (!performedBy || !status) {
       return res.status(400).json({ error: 'El personal de limpieza y el estado son obligatorios' });
@@ -89,9 +90,16 @@ router.post('/rooms/:id/cleaning-logs', authenticate, authorize('ADMIN', 'MANAGE
     const room = await prisma.room.findUnique({ where: { id } });
     if (!room) return res.status(404).json({ error: 'Habitación no encontrada' });
 
+    // Validate staffId if provided
+    if (staffId) {
+      const staff = await prisma.user.findUnique({ where: { id: staffId } });
+      if (!staff) return res.status(400).json({ error: 'Usuario de limpieza no encontrado' });
+    }
+
     const log = await prisma.cleaningLog.create({
       data: {
         roomId: id,
+        staffId: staffId || null,
         performedBy,
         status,
         notes,
@@ -107,7 +115,13 @@ router.post('/rooms/:id/cleaning-logs', authenticate, authorize('ADMIN', 'MANAGE
       });
     }
 
-    res.status(201).json({ log });
+    // Return log with staff relation
+    const logWithStaff = await prisma.cleaningLog.findUnique({
+      where: { id: log.id },
+      include: { staff: { select: { id: true, name: true, email: true } } },
+    });
+
+    res.status(201).json({ log: logWithStaff });
   } catch (err) {
     next(err);
   }

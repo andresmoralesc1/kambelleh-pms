@@ -3,13 +3,14 @@ import { startOfDay, endOfDay, addDays } from 'date-fns';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { sendReservationConfirmation } from '../services/email.js';
+import { logActivity } from '../utils/logActivity.js';
 
 const router = express.Router();
 
 // GET /api/reservations
 router.get('/', authenticate, async (req, res, next) => {
   try {
-    const { status, roomId, from, to, guestId } = req.query;
+    const { status, roomId, from, to, guestId, page = 1, limit = 20 } = req.query;
     const where = {};
 
     if (status) where.status = status;
@@ -22,16 +23,26 @@ router.get('/', authenticate, async (req, res, next) => {
       if (to) where.checkIn.lte = new Date(to);
     }
 
-    const reservations = await prisma.reservation.findMany({
-      where,
-      include: {
-        guest: { select: { id: true, name: true, email: true, phone: true } },
-        room: { select: { id: true, number: true, name: true } },
-      },
-      orderBy: { checkIn: 'desc' },
-    });
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+    const skip = (pageNum - 1) * limitNum;
 
-    res.json({ reservations });
+    const [total, reservations] = await Promise.all([
+      prisma.reservation.count({ where }),
+      prisma.reservation.findMany({
+        where,
+        include: {
+          guest: { select: { id: true, name: true, email: true, phone: true } },
+          room: { select: { id: true, number: true, name: true } },
+        },
+        orderBy: { checkIn: 'desc' },
+        skip,
+        take: limitNum,
+      }),
+    ]);
+
+    const totalPages = Math.ceil(total / limitNum);
+    res.json({ reservations, total, page: pageNum, limit: limitNum, totalPages });
   } catch (err) {
     next(err);
   }
@@ -135,6 +146,8 @@ router.post('/', authenticate, async (req, res, next) => {
 
     // Enviar email de confirmación (no-bloqueante)
     sendReservationConfirmation(reservation.guest, reservation, reservation.room);
+
+    logActivity({ userId: req.user.id, action: 'CREATED', resource: 'RESERVATION', resourceId: reservation.id, details: { guestId, roomId, checkIn, checkOut }, ipAddress: req.ip });
   } catch (err) {
     next(err);
   }
@@ -249,6 +262,8 @@ router.patch('/:id/status', authenticate, async (req, res, next) => {
     });
 
     res.json({ reservation: updated });
+
+    logActivity({ userId: req.user.id, action: `STATUS_CHANGED_TO_${status}`, resource: 'RESERVATION', resourceId: req.params.id, details: { previousStatus: reservation.status, newStatus: status }, ipAddress: req.ip });
   } catch (err) {
     next(err);
   }
