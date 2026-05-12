@@ -98,7 +98,7 @@ router.post('/', authenticate, async (req, res, next) => {
 
     // Race condition fix: use transaction for atomic availability check + booking
     const reservation = await prisma.$transaction(async (tx) => {
-      // Check availability within transaction
+      // Check reservation overlap within transaction
       const overlap = await tx.reservation.findFirst({
         where: {
           roomId,
@@ -112,6 +112,18 @@ router.post('/', authenticate, async (req, res, next) => {
 
       if (overlap) {
         throw Object.assign(new Error('La habitación no está disponible para estas fechas'), { status: 409 });
+      }
+
+      // Also check blocked dates for this room/period
+      const blockedOverlap = await tx.blockedDate.findFirst({
+        where: {
+          roomId,
+          date: { gte: checkInDate, lt: checkOutDate },
+        },
+      });
+
+      if (blockedOverlap) {
+        throw Object.assign(new Error('La habitación está bloqueada para estas fechas'), { status: 409 });
       }
 
       // Calculate total
@@ -199,6 +211,18 @@ router.put('/:id', authenticate, async (req, res, next) => {
           throw Object.assign(new Error('La habitación no está disponible para estas fechas'), { status: 409 });
         }
 
+        // Also check blocked dates
+        const blockedOverlap = await tx.blockedDate.findFirst({
+          where: {
+            roomId: current.roomId,
+            date: { gte: newCheckIn, lt: newCheckOut },
+          },
+        });
+
+        if (blockedOverlap) {
+          throw Object.assign(new Error('La habitación está bloqueada para estas fechas'), { status: 409 });
+        }
+
         const room = await tx.room.findUnique({ where: { id: current.roomId } });
         const nights = Math.ceil((newCheckOut - newCheckIn) / (1000 * 60 * 60 * 24));
         const totalAmount = Number(room.pricePerNight) * nights;
@@ -245,7 +269,9 @@ router.patch('/:id/status', authenticate, async (req, res, next) => {
     // Update room status based on reservation status
     if (status === 'CHECKED_IN') {
       await prisma.room.update({ where: { id: reservation.roomId }, data: { status: 'OCCUPIED' } });
-    } else if (status === 'CHECKED_OUT' || status === 'CANCELLED') {
+    } else if (status === 'CHECKED_OUT') {
+      await prisma.room.update({ where: { id: reservation.roomId }, data: { status: 'AVAILABLE', cleaningStatus: 'NEEDS_CLEANING' } });
+    } else if (status === 'CANCELLED') {
       await prisma.room.update({ where: { id: reservation.roomId }, data: { status: 'AVAILABLE' } });
     }
 

@@ -27,10 +27,10 @@ router.post('/register', async (req, res, next) => {
         select: { id: true, email: true, name: true, role: true, createdAt: true },
       });
     } catch (err) {
-      // Si el email ya existe (P2002), responder con éxito genérico
+      // Si el email ya existe (P2002), responder con error genérico
       // para no revelar que el email está registrado
       if (err.code === 'P2002') {
-        return res.status(201).json({ message: 'Usuario registrado correctamente' });
+        return res.status(409).json({ error: 'El email ya está registrado' });
       }
       throw err;
     }

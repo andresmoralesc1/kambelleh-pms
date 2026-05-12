@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DollarSign, Calendar, Bed, Clock } from 'lucide-react';
 import { getDashboardAnalytics } from '../api';
+import { useSettings } from '../hooks/useQueries';
 import Layout from '../components/Layout';
 import KPICard from '../components/analytics/KPICard';
 import RevenueChart from '../components/analytics/RevenueChart';
@@ -11,11 +12,12 @@ import StatusPieChart from '../components/analytics/StatusPieChart';
 import LeadTimeChart from '../components/analytics/LeadTimeChart';
 import TopRooms from '../components/analytics/TopRooms';
 
-const fmt = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 });
-
 export default function Analytics() {
   const dark = document.documentElement.classList.contains('dark');
   const [months, setMonths] = useState(6);
+  const { data: settingsData } = useSettings();
+  const currency = settingsData?.currency || 'EUR';
+  const fmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency, minimumFractionDigits: 0 });
 
   const { data, isLoading } = useQuery({
     queryKey: ['analytics', months],

@@ -7,7 +7,12 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
 
 function GuestModal({ guest, onClose }) {
-  const [form, setForm] = useState(guest || {
+  const [form, setForm] = useState(guest ? {
+    name: guest.name || '', email: guest.email || '', phone: guest.phone || '',
+    documentType: guest.documentType || '', documentNumber: guest.documentNumber || '',
+    nationality: guest.nationality || '', notes: guest.notes || '',
+    vip: guest.vip ?? false, blacklist: guest.blacklist ?? false,
+  } : {
     name: '', email: '', phone: '', documentType: '', documentNumber: '', nationality: '', notes: '',
     vip: false, blacklist: false,
   });

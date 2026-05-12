@@ -16,7 +16,7 @@ const getStripe = () => {
 const router = express.Router();
 
 // POST /api/payments/create-intent
-router.post('/create-intent', authenticate, async (req, res, next) => {
+router.post('/create-intent', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIST'), async (req, res, next) => {
   try {
     const { reservationId } = req.body;
 

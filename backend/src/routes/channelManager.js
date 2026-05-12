@@ -13,6 +13,9 @@ let airbnbState = {
   mockMode: process.env.AIRBNB_MOCK === 'true',
 };
 
+// In-memory CSRF state store (single-process; use Redis in multi-instance prod)
+const airbnbOAuthStates = new Map();
+
 // GET /api/channels/airbnb/status
 router.get('/airbnb/status', authenticate, authorize('ADMIN'), async (req, res) => {
   const isMock = process.env.AIRBNB_MOCK === 'true';
@@ -53,8 +56,8 @@ router.post('/airbnb/connect', authenticate, authorize('ADMIN'), async (req, res
     return res.status(500).json({ error: 'Error al generar URL de autorización' });
   }
 
-  // Guardar state en sesión para verificación CSRF
-  req.session.airbnbOAuthState = authUrlData.state;
+  // Guardar state en memoria para verificación CSRF
+  airbnbOAuthStates.set(authUrlData.state, true);
 
   res.json({ authUrl: authUrlData.url, state: authUrlData.state });
 });
@@ -122,8 +125,13 @@ router.post('/airbnb/webhook', async (req, res) => {
   const signature = req.headers['x-airbnb-signature'];
   const webhookSecret = process.env.AIRBNB_WEBHOOK_SECRET;
 
-  // Verificar firma del webhook
-  if (webhookSecret && signature) {
+  // Reject if webhook secret is not configured
+  if (!webhookSecret) {
+    return res.status(500).json({ error: 'AIRBNB_WEBHOOK_SECRET no está configurado' });
+  }
+
+  // Always verify signature in production
+  if (signature) {
     const expectedSig = crypto.createHmac('sha256', webhookSecret)
       .update(JSON.stringify(req.body))
       .digest('hex');
@@ -131,6 +139,8 @@ router.post('/airbnb/webhook', async (req, res) => {
     if (signature !== expectedSig) {
       return res.status(403).json({ error: 'Firma de webhook inválida' });
     }
+  } else {
+    return res.status(400).json({ error: 'Falta firma del webhook' });
   }
 
   const event = req.body;
@@ -169,11 +179,12 @@ router.get('/airbnb/callback', async (req, res) => {
     return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/channels?error=missing_code`);
   }
 
-  // Verificar state CSRF
-  if (req.session.airbnbOAuthState !== state) {
+  // Verificar state CSRF (in-memory store)
+  if (!airbnbOAuthStates.has(state)) {
     console.error('Airbnb OAuth state mismatch');
     return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/channels?error=invalid_state`);
   }
+  airbnbOAuthStates.delete(state);
 
   try {
     await airbnbService.exchangeCodeForTokens(code);

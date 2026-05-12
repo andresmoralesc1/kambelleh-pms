@@ -64,12 +64,12 @@ router.get('/:id', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), 
 // POST /api/guests
 router.post('/', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, res, next) => {
   try {
-    const { name, email, phone, documentType, documentNumber, nationality, birthDate, notes } = req.body;
+    const { name, email, phone, documentType, documentNumber, nationality, birthDate, notes, vip, blacklist } = req.body;
 
     if (!name) return res.status(400).json({ error: 'El nombre es obligatorio' });
 
     const guest = await prisma.guest.create({
-      data: { name, email, phone, documentType, documentNumber, nationality, birthDate, notes },
+      data: { name, email, phone, documentType, documentNumber, nationality, birthDate, notes, vip, blacklist },
     });
 
     res.status(201).json({ guest });
@@ -83,11 +83,11 @@ router.post('/', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, r
 // PUT /api/guests/:id
 router.put('/:id', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, res, next) => {
   try {
-    const { name, email, phone, documentType, documentNumber, nationality, birthDate, notes } = req.body;
+    const { name, email, phone, documentType, documentNumber, nationality, birthDate, notes, vip, blacklist } = req.body;
 
     const guest = await prisma.guest.update({
       where: { id: req.params.id },
-      data: { name, email, phone, documentType, documentNumber, nationality, birthDate, notes },
+      data: { name, email, phone, documentType, documentNumber, nationality, birthDate, notes, vip, blacklist },
     });
 
     res.json({ guest });

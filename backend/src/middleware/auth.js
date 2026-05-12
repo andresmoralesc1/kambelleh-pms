@@ -2,6 +2,10 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/database.js';
 import { randomBytes } from 'crypto';
 
+if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+  throw new Error('JWT_SECRET and JWT_REFRESH_SECRET environment variables must be set');
+}
+
 export async function authenticate(req, res, next) {
   try {
     // Load token from httpOnly cookie first, fallback to Bearer header
@@ -10,7 +14,7 @@ export async function authenticate(req, res, next) {
       return res.status(401).json({ error: 'No autenticado' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'kambelleh-secret-key');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: { id: true, email: true, name: true, role: true },
@@ -43,8 +47,8 @@ export function authorize(...roles) {
 }
 
 export function generateTokens(userId) {
-  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET || 'kambelleh-secret-key', { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ userId, tokenId: randomBytes(16).toString('hex') }, process.env.JWT_REFRESH_SECRET || 'kambelleh-refresh-secret-key', { expiresIn: '7d' });
+  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
+  const refreshToken = jwt.sign({ userId, tokenId: randomBytes(16).toString('hex') }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
   return { accessToken, refreshToken };
 }
 
@@ -87,5 +91,4 @@ export function setAuthCookies(res, tokens) {
 export function clearAuthCookies(res) {
   res.clearCookie('accessToken');
   res.clearCookie('refreshToken');
-  res.clearCookie('token');
 }
