@@ -8,7 +8,10 @@ const router = express.Router();
 // GET /api/guests
 router.get('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
   try {
-    const { search, limit = 50 } = req.query;
+    const { search, page = 1, limit = 20 } = req.query;
+    const pageNum = Math.max(1, parseInt(page));
+    const take = Math.min(100, Math.max(1, parseInt(limit)));
+    const skip = (pageNum - 1) * take;
 
     const where = search
       ? {
@@ -20,21 +23,25 @@ router.get('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), asy
         }
       : {};
 
-    const guests = await prisma.guest.findMany({
-      where,
-      take: parseInt(limit),
-      orderBy: { createdAt: 'desc' },
-      include: {
-        _count: { select: { reservations: true } },
-        reservations: {
-          take: 1,
-          orderBy: { checkIn: 'desc' },
-          select: { checkIn: true, room: { select: { number: true } } },
+    const [guests, total] = await Promise.all([
+      prisma.guest.findMany({
+        where,
+        take,
+        skip,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          _count: { select: { reservations: true } },
+          reservations: {
+            take: 1,
+            orderBy: { checkIn: 'desc' },
+            select: { checkIn: true, room: { select: { number: true } } },
+          },
         },
-      },
-    });
+      }),
+      prisma.guest.count({ where }),
+    ]);
 
-    res.json({ guests });
+    res.json({ guests, total, page: pageNum, pages: Math.ceil(total / take) });
   } catch (err) {
     next(err);
   }

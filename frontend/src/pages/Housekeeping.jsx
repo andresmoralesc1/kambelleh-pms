@@ -91,6 +91,7 @@ export default function Housekeeping() {
   const [confirmState, setConfirmState] = useState(null);
   const [selectedStaffId, setSelectedStaffId] = useState('');
   const [cleaningNotes, setCleaningNotes] = useState('');
+  const [pendingRoomId, setPendingRoomId] = useState(null);
   const toast = useToast();
 
   const { data, isLoading } = useRooms();
@@ -103,24 +104,28 @@ export default function Housekeeping() {
   const filtered = filter === 'ALL' ? rooms : rooms.filter(r => r.cleaningStatus === filter);
 
   const handleStatusChange = async (room, newStatus) => {
+    setPendingRoomId(room.id);
     try {
       await updateStatus.mutateAsync({ roomId: room.id, status: newStatus });
       const config = cleaningStatusConfig[newStatus];
       toast.success(`Habitación #${room.number} marcada como "${config.label.toLowerCase()}"`);
     } catch (err) {
       toast.error('No se pudo actualizar el estado de limpieza');
+    } finally {
+      setPendingRoomId(null);
     }
   };
 
   const handleMarkClean = (room) => {
     setSelectedStaffId('');
     setCleaningNotes('');
+    setPendingRoomId(room.id);
     setConfirmState({
       title: 'Registrar limpieza',
       message: `¿Quién realizó la limpieza de la habitación #${room.number}?`,
       confirmLabel: 'Registrar',
       resolve: async (ok) => {
-        if (!ok) return;
+        if (!ok) { setPendingRoomId(null); return; }
         try {
           const selectedUser = users.find(u => u.id === selectedStaffId);
           await createLog.mutateAsync({
@@ -135,6 +140,8 @@ export default function Housekeeping() {
           toast.success(`Habitación #${room.number} marcada como limpia`);
         } catch (err) {
           toast.error('No se pudo registrar la limpieza');
+        } finally {
+          setPendingRoomId(null);
         }
       },
     });
@@ -215,19 +222,29 @@ export default function Housekeeping() {
                   <div className="flex gap-2 mt-3">
                     <button
                       onClick={() => handleMarkClean(room)}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-medium transition-colors"
-                      aria-label={`Marcar habitación ${room.number} como limpia`}>
-                      <CheckCircle className="w-4 h-4" /> Marcar limpia
+                      disabled={pendingRoomId === room.id}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label={`Marcar habitación ${room.number} como limpia`}
+                      aria-disabled={pendingRoomId === room.id}>
+                      {pendingRoomId === room.id ? (
+                        <><span className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />Procesando</>
+                      ) : (
+                        <><CheckCircle className="w-4 h-4" /> Marcar limpia</>
+                      )}
                     </button>
                     <button
                       onClick={() => handleStatusChange(room, room.cleaningStatus === 'NEEDS_CLEANING' ? 'CLEANED' : 'NEEDS_CLEANING')}
-                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                      disabled={pendingRoomId === room.id}
+                      className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                         room.cleaningStatus === 'NEEDS_CLEANING'
                           ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
                           : 'bg-red-50 hover:bg-red-100 text-red-700'
                       }`}
-                      aria-label={room.cleaningStatus === 'NEEDS_CLEANING' ? `Marcar habitación ${room.number} como limpia` : `Marcar habitación ${room.number} como necesita limpieza`}>
-                      {room.cleaningStatus === 'NEEDS_CLEANING' ? (
+                      aria-label={room.cleaningStatus === 'NEEDS_CLEANING' ? `Marcar habitación ${room.number} como limpia` : `Marcar habitación ${room.number} como necesita limpieza`}
+                      aria-disabled={pendingRoomId === room.id}>
+                      {pendingRoomId === room.id ? (
+                        <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />Procesando</>
+                      ) : room.cleaningStatus === 'NEEDS_CLEANING' ? (
                         <><CheckCircle className="w-4 h-4" /> Marcar limpia</>
                       ) : (
                         <><AlertCircle className="w-4 h-4" /> Necesita limpieza</>

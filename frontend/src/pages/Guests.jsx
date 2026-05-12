@@ -345,15 +345,24 @@ function GuestCard({ guest, onDelete }) {
 
 export default function Guests() {
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editingGuest, setEditingGuest] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
-  const { data, isLoading } = useGuests({ search });
+  const { data, isLoading } = useGuests({ search, page });
   const deleteGuest = useDeleteGuest();
   const toast = useToast();
   const exportGuests = useExportGuests();
 
   const guests = data?.guests || [];
+  const total = data?.total || 0;
+  const totalPages = data?.pages || 1;
+
+  // Reset to page 1 when search changes
+  const handleSearch = (value) => {
+    setSearch(value);
+    setPage(1);
+  };
 
   const handleDelete = (guest) => {
     setConfirmState({
@@ -382,7 +391,7 @@ export default function Guests() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-surface-900">Huéspedes</h1>
-          <p className="text-surface-500 text-sm mt-0.5">{guests.length} huéspedes registrados</p>
+          <p className="text-surface-500 text-sm mt-0.5">{total} huésped{total !== 1 ? 'es' : ''} registrado{total !== 1 ? 's' : ''}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportGuests}
@@ -402,7 +411,7 @@ export default function Guests() {
       <div className="relative max-w-md">
         <label htmlFor="guest-search" className="sr-only">Buscar huéspedes</label>
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500" aria-hidden="true" />
-        <input id="guest-search" value={search} onChange={e => setSearch(e.target.value)}
+        <input id="guest-search" value={search} onChange={e => handleSearch(e.target.value)}
           placeholder="Buscar por nombre, email o teléfono..."
           className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow" />
       </div>
@@ -428,11 +437,34 @@ export default function Guests() {
           </button>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {guests.map(guest => (
-            <GuestCard key={guest.id} guest={guest} onDelete={handleDelete} />
-          ))}
-        </div>
+        <>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {guests.map(guest => (
+              <GuestCard key={guest.id} guest={guest} onDelete={handleDelete} />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 rounded-xl border border-surface-200 text-sm font-medium text-surface-600 hover:bg-surface-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-label="Página anterior">
+                ← Anterior
+              </button>
+              <span className="text-sm text-surface-500 px-3">
+                Página <span className="font-semibold text-surface-800">{page}</span> de <span className="font-semibold text-surface-800">{totalPages}</span>
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 rounded-xl border border-surface-200 text-sm font-medium text-surface-600 hover:bg-surface-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                aria-label="Página siguiente">
+                Siguiente →
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {showModal && <GuestModal guest={editingGuest} onClose={() => { setShowModal(false); setEditingGuest(null); }} />}

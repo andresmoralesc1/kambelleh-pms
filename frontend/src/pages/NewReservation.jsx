@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays } from 'date-fns';
 import { es } from 'date-fns/locale/es';
@@ -17,6 +17,7 @@ export default function NewReservation() {
   const [checkIn, setCheckIn] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [checkOut, setCheckOut] = useState(format(addDays(new Date(), 1), 'yyyy-MM-dd'));
   const [guestSearch, setGuestSearch] = useState('');
+  const [guestSearchDebounced, setGuestSearchDebounced] = useState('');
   const [newGuestMode, setNewGuestMode] = useState(false);
   const [selectedGuest, setSelectedGuest] = useState(null);
   const [guestForm, setGuestForm] = useState({ name: '', email: '', phone: '' });
@@ -27,7 +28,13 @@ export default function NewReservation() {
   const [error, setError] = useState('');
 
   const { data: roomsData, isLoading: roomsLoading } = useRooms({ status: 'AVAILABLE' });
-  const { data: guestsData, isLoading: guestsLoading } = useGuests({ search: guestSearch });
+  const { data: guestsData, isLoading: guestsLoading } = useGuests({ search: guestSearchDebounced });
+
+  // Debounce guest search: 300ms after user stops typing
+  useEffect(() => {
+    const timer = setTimeout(() => setGuestSearchDebounced(guestSearch), 300);
+    return () => clearTimeout(timer);
+  }, [guestSearch]);
   const createReservation = useCreateReservation();
   const createGuest = useCreateGuest();
   const updateStatus = useUpdateReservationStatus();
