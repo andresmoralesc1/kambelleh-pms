@@ -24,10 +24,12 @@ router.get('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), asy
 
 // POST /api/notes -> crear nota { content, authorName, guestId?, reservationId? }
 router.post('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
-  const { content, authorName, guestId, reservationId } = req.body;
-  if (!content || !authorName) {
-    return res.status(400).json({ error: 'Contenido y nombre del autor son requeridos' });
+  const { content, guestId, reservationId } = req.body;
+  if (!content) {
+    return res.status(400).json({ error: 'Contenido es requerido' });
   }
+  // Use authenticated user's name from JWT — never trust req.body for author identity
+  const authorName = req.user.name;
   try {
     const note = await prisma.internalNote.create({
       data: {

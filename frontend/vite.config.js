@@ -35,8 +35,8 @@ export default defineConfig({
           },
           {
             urlPattern: /\/api\/(rooms|reservations|guests|dashboard|analytics|housekeeping)/,
-            handler: 'NetworkFirst',
-            options: { cacheName: 'api-cache', expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 } },
+            handler: 'StaleWhileRevalidate',
+            options: { cacheName: 'api-cache', expiration: { maxEntries: 50, maxAgeSeconds: 60 } },
           },
         ],
       },

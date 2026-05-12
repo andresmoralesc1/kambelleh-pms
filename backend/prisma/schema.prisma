@@ -147,6 +147,9 @@ model Reservation {
   payments   Payment[]
   internalNotes InternalNote[]
 
+  @@index([guestId])
+  @@index([roomId])
+  @@index([createdById])
   @@index([status])
   @@index([checkIn])
   @@index([checkOut])
@@ -179,6 +182,7 @@ model Payment {
 
   @@index([status])
   @@index([createdAt])
+  @@index([reservationId])
   @@map("payments")
 }
 
@@ -201,6 +205,7 @@ model BlockedDate {
   room Room @relation(fields: [roomId], references: [id])
 
   @@unique([roomId, date])
+  @@index([roomId])
   @@map("blocked_dates")
 }
 

@@ -99,6 +99,30 @@ if (process.env.NODE_ENV === 'production') {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
+
 server.listen(PORT, () => {
   console.log(`🔥 Kambelleh PMS API running on port ${PORT}`);
 });
+
+// Graceful shutdown — drain connections before exiting
+const shutdown = (signal) => {
+  console.log(`\n${signal} received. Shutting down gracefully...`);
+  server.close(async () => {
+    console.log('HTTP server closed.');
+    try {
+      await prisma.$disconnect();
+      console.log('Database connections closed.');
+    } catch (err) {
+      console.error('Error closing DB connections:', err);
+    }
+    process.exit(0);
+  });
+  // Force exit after 10s if graceful shutdown hangs
+  setTimeout(() => {
+    console.error('Forced exit after timeout.');
+    process.exit(1);
+  }, 10000);
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

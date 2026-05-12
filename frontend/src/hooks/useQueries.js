@@ -27,7 +27,13 @@ export function useCreateRoom() {
 }
 export function useUpdateRoom() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: ({ id, data }) => api.updateRoom(id, data), onSuccess: (_, { id }) => qc.invalidateQueries({ queryKey: keys.room(id) }) });
+  return useMutation({
+    mutationFn: ({ id, data }) => api.updateRoom(id, data),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: keys.room(id) });
+      qc.invalidateQueries({ queryKey: keys.rooms() });
+    }
+  });
 }
 export function useDeleteRoom() {
   const qc = useQueryClient();
@@ -50,7 +56,13 @@ export function useCreateReservation() {
 }
 export function useUpdateReservation() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: ({ id, data }) => api.updateReservation(id, data), onSuccess: (_, { id }) => qc.invalidateQueries({ queryKey: keys.reservation(id) }) });
+  return useMutation({
+    mutationFn: ({ id, data }) => api.updateReservation(id, data),
+    onSuccess: (_, { id }) => {
+      qc.invalidateQueries({ queryKey: keys.reservation(id) });
+      qc.invalidateQueries({ queryKey: ['reservations'] });
+    }
+  });
 }
 export function useUpdateReservationStatus() {
   const qc = useQueryClient();
