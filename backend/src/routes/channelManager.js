@@ -13,9 +13,6 @@ let airbnbState = {
   mockMode: process.env.AIRBNB_MOCK === 'true',
 };
 
-// In-memory CSRF state store (single-process; use Redis in multi-instance prod)
-const airbnbOAuthStates = new Map();
-
 // GET /api/channels/airbnb/status
 router.get('/airbnb/status', authenticate, authorize('ADMIN'), async (req, res) => {
   const isMock = process.env.AIRBNB_MOCK === 'true';
@@ -56,8 +53,14 @@ router.post('/airbnb/connect', authenticate, authorize('ADMIN'), async (req, res
     return res.status(500).json({ error: 'Error al generar URL de autorización' });
   }
 
-  // Guardar state en memoria para verificación CSRF
-  airbnbOAuthStates.set(authUrlData.state, true);
+  // Persist CSRF state in DB (survives restarts, works with multiple instances)
+  await prisma.oAuthState.create({
+    data: {
+      state: authUrlData.state,
+      channel: 'AIRBNB',
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 min TTL
+    },
+  });
 
   res.json({ authUrl: authUrlData.url, state: authUrlData.state });
 });
@@ -179,12 +182,14 @@ router.get('/airbnb/callback', async (req, res) => {
     return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/channels?error=missing_code`);
   }
 
-  // Verificar state CSRF (in-memory store)
-  if (!airbnbOAuthStates.has(state)) {
-    console.error('Airbnb OAuth state mismatch');
+  // Verify CSRF state from DB (not in-memory Map)
+  const oauthState = await prisma.oAuthState.findUnique({ where: { state } });
+  if (!oauthState) {
+    console.error('Airbnb OAuth state not found or expired');
     return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/channels?error=invalid_state`);
   }
-  airbnbOAuthStates.delete(state);
+  // Delete immediately to prevent replay attacks
+  await prisma.oAuthState.delete({ where: { id: oauthState.id } });
 
   try {
     await airbnbService.exchangeCodeForTokens(code);

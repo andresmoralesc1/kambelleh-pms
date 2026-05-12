@@ -44,18 +44,18 @@ async function stripeWebhook(req, res) {
       const { reservationId } = paymentIntent.metadata;
 
       if (reservationId) {
-        // Idempotency: verificar si ya existe el pago
-        const existingPayment = await prisma.payment.findFirst({
-          where: { stripeChargeId: paymentIntent.id },
-        });
-        if (existingPayment) {
-          // Ya procesado, responder OK
-          break;
-        }
+        // Idempotency: use SELECT FOR UPDATE inside transaction to prevent
+        // race conditions when duplicate webhook events arrive simultaneously
+        await prisma.$transaction(async (tx) => {
+          const [{ id: existingId }] = await tx.$queryRaw`
+            SELECT id FROM payments WHERE stripe_charge_id = ${paymentIntent.id} FOR UPDATE
+          `;
+          if (existingId) {
+            // Already processed — exit transaction early
+            return;
+          }
 
-        // Crear pago + actualizar reserva atomicamente
-        await prisma.$transaction([
-          prisma.payment.create({
+          await tx.payment.create({
             data: {
               reservationId,
               amount: paymentIntent.amount / 100,
@@ -64,12 +64,12 @@ async function stripeWebhook(req, res) {
               stripeChargeId: paymentIntent.id,
               method: 'card',
             },
-          }),
-          prisma.reservation.update({
+          });
+          await tx.reservation.update({
             where: { id: reservationId },
             data: { status: 'CONFIRMED', stripePaymentId: paymentIntent.id },
-          }),
-        ]);
+          });
+        });
       } else {
         console.warn('Webhook: payment_intent.succeeded sin reservationId:', paymentIntent.id);
       }

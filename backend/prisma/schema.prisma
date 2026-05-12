@@ -272,6 +272,18 @@ model ChannelConnection {
   @@map("channel_connections")
 }
 
+// Short-lived OAuth CSRF state — persisted in DB for multi-instance safety
+model OAuthState {
+  id        String   @id @default(uuid())
+  state     String   @unique
+  channel   Channel
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([expiresAt])
+  @@map("oauth_states")
+}
+
 // ================== SETTINGS ==================
 
 model Setting {

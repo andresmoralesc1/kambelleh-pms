@@ -1,13 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { getMe, login as apiLogin, logout as apiLogout, register as apiRegister, refresh } from '../api';
+import { login as apiLogin, logout as apiLogout, register as apiRegister, refresh } from '../api';
 import api from '../api/index.js';
 
-// Axios interceptor: inject token from localStorage on every request
+// Axios interceptor: withCredentials=true sends httpOnly cookies automatically
+// No need to touch localStorage for auth — backend sets accessToken cookie
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  // Let cookies be sent automatically via withCredentials: true
   return config;
 });
 
@@ -18,40 +16,29 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      refresh().then(({ data }) => {
-        setUser(data.user);
-      }).catch(() => {
-        localStorage.removeItem('accessToken');
-        setUser(null);
-      }).finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    // Validate existing session via refresh endpoint — reads httpOnly cookie
+    refresh()
+      .then(({ data }) => setUser(data.user))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
   const login = async (email, password) => {
     const { data } = await apiLogin({ email, password });
-    if (data.accessToken) {
-      localStorage.setItem('accessToken', data.accessToken);
-    }
+    // Backend sets accessToken + refreshToken as httpOnly cookies
+    // User data comes in the response body
     setUser(data.user);
     return data.user;
   };
 
   const register = async (email, password, name, role) => {
     const { data } = await apiRegister({ email, password, name, role });
-    if (data.accessToken) {
-      localStorage.setItem('accessToken', data.accessToken);
-    }
     setUser(data.user);
     return data.user;
   };
 
   const logout = async () => {
     await apiLogout();
-    localStorage.removeItem('accessToken');
     setUser(null);
   };
 
