@@ -107,7 +107,7 @@ router.get('/:reservationId', authenticate, async (req, res, next) => {
     if (!reservation) return res.status(404).json({ error: 'Reserva no encontrada' });
 
     // Staff can view any payment; non-staff can only view their own reservation's payments
-    if (req.user.role !== 'ADMIN' && req.user.role !== 'RECEPTIONIST') {
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'RECEPCIONIST') {
       if (reservation.guestId !== req.user.id) {
         return res.status(403).json({ error: 'No tienes permisos para ver estos pagos' });
       }

@@ -46,7 +46,7 @@ app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(express.json());
 
-// Rate limiting
+// Rate limiting — global
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 min
   max: 100,
@@ -54,6 +54,17 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 app.use('/api', limiter);
+
+// Rate limiting — auth endpoints (stricter: 10 attempts / 15 min)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiados intentos. Intenta de nuevo en 15 minutos.' },
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // ================== ROUTES ==================
 

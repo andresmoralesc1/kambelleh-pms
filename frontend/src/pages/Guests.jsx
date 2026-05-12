@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, Eye, User, Phone, Mail, MapPin, Pencil, X, Users, Trash2, Download, StickyNote } from 'lucide-react';
+import { Plus, Search, Phone, Mail, MapPin, X, Users, Trash2, Download, StickyNote } from 'lucide-react';
 import { useGuests, useCreateGuest, useUpdateGuest, useDeleteGuest, useNotes, useCreateNote, useDeleteNote } from '../hooks/useQueries';
 import { useExportGuests } from '../hooks/useExport';
 import { useToast } from '../components/ToastProvider';
@@ -9,6 +9,7 @@ import { es } from 'date-fns/locale/es';
 function GuestModal({ guest, onClose }) {
   const [form, setForm] = useState(guest || {
     name: '', email: '', phone: '', documentType: '', documentNumber: '', nationality: '', notes: '',
+    vip: false, blacklist: false,
   });
   const [error, setError] = useState('');
   const createGuest = useCreateGuest();
@@ -96,6 +97,18 @@ function GuestModal({ guest, onClose }) {
             <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows="2"
               className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
               placeholder="Alergias, preferencias, información relevante..." />
+          </div>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={form.vip} onChange={e => setForm({ ...form, vip: e.target.checked })}
+                className="w-4 h-4 rounded border-surface-300 text-amber-500 focus:ring-amber-500" />
+              <span className="text-sm font-medium text-amber-700">⭐ Cliente VIP</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={form.blacklist} onChange={e => setForm({ ...form, blacklist: e.target.checked })}
+                className="w-4 h-4 rounded border-surface-300 text-red-500 focus:ring-red-500" />
+              <span className="text-sm font-medium text-red-700">🚫 blacklist</span>
+            </label>
           </div>
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose}
@@ -216,7 +229,11 @@ function GuestCard({ guest, onDelete }) {
               {guest.name.charAt(0)}
             </div>
             <div>
-              <p className="font-semibold text-surface-900">{guest.name}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-surface-900">{guest.name}</p>
+                {guest.vip && <span className="text-xs px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">⭐ VIP</span>}
+                {guest.blacklist && <span className="text-xs px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 font-medium">🚫</span>}
+              </div>
               <p className="text-xs text-surface-500">{totalReservations} reserva{totalReservations !== 1 ? 's' : ''}</p>
             </div>
           </div>

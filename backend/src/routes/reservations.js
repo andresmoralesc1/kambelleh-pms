@@ -215,7 +215,7 @@ router.put('/:id', authenticate, async (req, res, next) => {
 // PATCH /api/reservations/:id/status
 router.patch('/:id/status', authenticate, async (req, res, next) => {
   try {
-    const { status } = req.body;
+    const { status, cancellationReason } = req.body;
     const validStatuses = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'CANCELLED'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Estado inválido' });
@@ -225,7 +225,7 @@ router.patch('/:id/status', authenticate, async (req, res, next) => {
     if (!reservation) return res.status(404).json({ error: 'Reserva no encontrada' });
 
     // IDOR: only ADMIN/MANAGER/RECEPTIONIST or the creator can change status
-    if (req.user.role !== 'ADMIN' && req.user.role !== 'MANAGER' && req.user.role !== 'RECEPTIONIST' && reservation.createdById !== req.user.id) {
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'MANAGER' && req.user.role !== 'RECEPCIONIST' && reservation.createdById !== req.user.id) {
       return res.status(403).json({ error: 'No tienes permisos para cambiar el estado de esta reserva' });
     }
 
@@ -236,9 +236,15 @@ router.patch('/:id/status', authenticate, async (req, res, next) => {
       await prisma.room.update({ where: { id: reservation.roomId }, data: { status: 'AVAILABLE' } });
     }
 
+    // Build update data
+    const updateData = { status };
+    if (status === 'CANCELLED' && cancellationReason) {
+      updateData.cancellationReason = cancellationReason;
+    }
+
     const updated = await prisma.reservation.update({
       where: { id: req.params.id },
-      data: { status },
+      data: updateData,
       include: { guest: true, room: true },
     });
 

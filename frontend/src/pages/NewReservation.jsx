@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, addDays } from 'date-fns';
 import { es } from 'date-fns/locale/es';
-import { ArrowLeft, Search, User, Calendar, Check, AlertCircle, DoorOpen, UserPlus } from 'lucide-react';
+import { ArrowLeft, Search, User, Calendar, Check, AlertCircle, DoorOpen, UserPlus, Zap } from 'lucide-react';
 import { useRooms } from '../hooks/useQueries';
 import { useGuests } from '../hooks/useQueries';
-import { useCreateReservation, useCreateGuest } from '../hooks/useQueries';
+import { useCreateReservation, useCreateGuest, useUpdateReservationStatus } from '../hooks/useQueries';
 import { formatCurrencyCompact, formatCurrency } from '../utils/currency';
 
 const typeLabels = { PRIVATE: 'Privada', SHARED: 'Compartida', DORM: 'Dormitorio' };
@@ -23,12 +23,14 @@ export default function NewReservation() {
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [specialRequests, setSpecialRequests] = useState('');
+  const [isWalkIn, setIsWalkIn] = useState(false);
   const [error, setError] = useState('');
 
   const { data: roomsData, isLoading: roomsLoading } = useRooms({ status: 'AVAILABLE' });
   const { data: guestsData, isLoading: guestsLoading } = useGuests({ search: guestSearch });
   const createReservation = useCreateReservation();
   const createGuest = useCreateGuest();
+  const updateStatus = useUpdateReservationStatus();
 
   const rooms = roomsData?.rooms || [];
   const guests = guestsData?.guests || [];
@@ -64,7 +66,7 @@ export default function NewReservation() {
     if (!selectedGuest || !selectedRoom) return;
     setError('');
     try {
-      await createReservation.mutateAsync({
+      const res = await createReservation.mutateAsync({
         guestId: selectedGuest.id,
         roomId: selectedRoom.id,
         checkIn,
@@ -73,6 +75,10 @@ export default function NewReservation() {
         children,
         specialRequests,
       });
+      // Walk-in: immediately check in the guest
+      if (isWalkIn && res?.data?.id) {
+        await updateStatus.mutateAsync({ id: res.data.id, status: 'CHECKED_IN' });
+      }
       navigate('/reservations');
     } catch (err) {
       setError(err.response?.data?.error || 'Error al crear la reserva');
@@ -328,6 +334,23 @@ export default function NewReservation() {
                 <span className="text-surface-600 font-medium">Total ({nights} noches × {formatCurrencyCompact(selectedRoom?.pricePerNight)})</span>
                 <span className="font-bold text-primary-600 text-xl">{formatCurrency(totalPrice)}</span>
               </div>
+            </div>
+
+            {/* Walk-in toggle */}
+            <div className="p-4 rounded-xl border border-dashed border-surface-300 bg-surface-50">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isWalkIn}
+                  onChange={e => setIsWalkIn(e.target.checked)}
+                  className="w-5 h-5 rounded border-surface-300 text-primary-600 focus:ring-primary-500"
+                />
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-amber-500" aria-hidden="true" />
+                  <span className="text-sm font-medium text-surface-700">Check-in inmediato (Walk-in)</span>
+                </div>
+              </label>
+              <p className="ml-10 mt-1 text-xs text-surface-500">La reserva se creará y el huésped quedará registrado automáticamente</p>
             </div>
 
             <button onClick={handleSubmit} disabled={createReservation.isPending}

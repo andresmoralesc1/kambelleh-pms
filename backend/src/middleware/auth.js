@@ -4,13 +4,13 @@ import { randomBytes } from 'crypto';
 
 export async function authenticate(req, res, next) {
   try {
-    const token = req.cookies?.accessToken || req.headers.authorization?.split(' ')[1];
-
+    // Load token from httpOnly cookie first, fallback to Bearer header
+    const token = req.cookies?.accessToken || req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
+      return res.status(401).json({ error: 'No autenticado' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'kambelleh-secret-key');
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: { id: true, email: true, name: true, role: true },
@@ -43,13 +43,12 @@ export function authorize(...roles) {
 }
 
 export function generateTokens(userId) {
-  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ userId, tokenId: randomBytes(16).toString('hex') }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+  const accessToken = jwt.sign({ userId }, process.env.JWT_SECRET || 'kambelleh-secret-key', { expiresIn: '15m' });
+  const refreshToken = jwt.sign({ userId, tokenId: randomBytes(16).toString('hex') }, process.env.JWT_REFRESH_SECRET || 'kambelleh-refresh-secret-key', { expiresIn: '7d' });
   return { accessToken, refreshToken };
 }
 
 export async function storeRefreshToken(userId, refreshToken, expiresAt) {
-  // Rotate: delete old tokens for user, store new one
   await prisma.refreshToken.deleteMany({ where: { userId } });
   await prisma.refreshToken.create({
     data: { token: refreshToken, userId, expiresAt },
@@ -88,4 +87,5 @@ export function setAuthCookies(res, tokens) {
 export function clearAuthCookies(res) {
   res.clearCookie('accessToken');
   res.clearCookie('refreshToken');
+  res.clearCookie('token');
 }

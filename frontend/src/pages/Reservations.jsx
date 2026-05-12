@@ -89,6 +89,8 @@ function NoteModal({ reservationId, onClose }) {
 function ReservationModal({ reservation, onClose }) {
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [confirmState, setConfirmState] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
   const updateStatus = useUpdateReservationStatus();
   const { data: notesData, isLoading: notesLoading } = useNotes({ reservationId: reservation.id });
   const deleteNote = useDeleteNote();
@@ -99,6 +101,11 @@ function ReservationModal({ reservation, onClose }) {
   const notes = notesData?.notes || [];
 
   const handleStatus = async (newStatus) => {
+    // Cancellation requires a reason modal
+    if (newStatus === 'CANCELLED') {
+      setShowCancelModal(true);
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -106,6 +113,24 @@ function ReservationModal({ reservation, onClose }) {
       onClose();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al actualizar el estado');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!cancelReason.trim()) {
+      setError('Por favor ingresa un motivo de cancelación');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    try {
+      await updateStatus.mutateAsync({ id: reservation.id, status: 'CANCELLED', cancellationReason: cancelReason.trim() });
+      setShowCancelModal(false);
+      onClose();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al cancelar la reserva');
     } finally {
       setLoading(false);
     }
@@ -133,8 +158,14 @@ function ReservationModal({ reservation, onClose }) {
   const handleCancel = () => { confirmState?.resolve?.(false); setConfirmState(null); };
 
   const statusActions = {
-    PENDING: [{ label: 'Confirmar reserva', status: 'CONFIRMED', color: 'bg-blue-600 hover:bg-blue-700' }],
-    CONFIRMED: [{ label: 'Realizar Check-in', status: 'CHECKED_IN', color: 'bg-emerald-600 hover:bg-emerald-700' }],
+    PENDING: [
+      { label: 'Confirmar reserva', status: 'CONFIRMED', color: 'bg-blue-600 hover:bg-blue-700' },
+      { label: 'Cancelar reserva', status: 'CANCELLED', color: 'bg-red-50 hover:bg-red-100 text-red-700' },
+    ],
+    CONFIRMED: [
+      { label: 'Realizar Check-in', status: 'CHECKED_IN', color: 'bg-emerald-600 hover:bg-emerald-700' },
+      { label: 'Cancelar reserva', status: 'CANCELLED', color: 'bg-red-50 hover:bg-red-100 text-red-700' },
+    ],
     CHECKED_IN: [{ label: 'Realizar Check-out', status: 'CHECKED_OUT', color: 'bg-surface-700 hover:bg-surface-800' }],
   };
 
@@ -252,19 +283,43 @@ function ReservationModal({ reservation, onClose }) {
               ))}
             </div>
           )}
-
-          {(reservation.status === 'PENDING' || reservation.status === 'CONFIRMED') && (
-            <div className="mt-2">
-              <button onClick={() => handleStatus('CANCELLED')} disabled={loading}
-                className="w-full py-2 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 disabled:opacity-50 transition-colors">
-                Cancelar reserva
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
       {showNoteModal && <NoteModal reservationId={reservation.id} onClose={() => setShowNoteModal(false)} />}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+              </div>
+              <h2 className="text-lg font-bold text-surface-900">Cancelar reserva</h2>
+            </div>
+            <p className="text-sm text-surface-600 mb-4">Por favor ingresa el motivo de la cancelación.</p>
+            {error && <div className="mb-3 px-3 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs">{error}</div>}
+            <textarea
+              value={cancelReason}
+              onChange={e => setCancelReason(e.target.value)}
+              rows="3"
+              placeholder="Ej: Cliente solicitó cancelación por cambio de planes"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-500 mb-4"
+            />
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => { setShowCancelModal(false); setCancelReason(''); setError(''); }}
+                className="px-4 py-2 rounded-xl border border-surface-200 text-surface-700 text-sm font-medium hover:bg-surface-50 transition-colors">
+                Volver
+              </button>
+              <button onClick={handleConfirmCancel} disabled={loading}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium disabled:opacity-50 transition-colors">
+                {loading ? 'Cancelando...' : 'Confirmar cancelación'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Generic confirm dialog */}
       {confirmState && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">

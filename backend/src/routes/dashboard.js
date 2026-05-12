@@ -11,63 +11,39 @@ router.get('/stats', authenticate, async (req, res, next) => {
     const today = new Date();
     const todayStart = startOfDay(today);
     const todayEnd = endOfDay(today);
-    const monthStart = startOfMonth(today);
-    const monthEnd = endOfMonth(today);
 
-    // Total rooms
-    const totalRooms = await prisma.room.count();
-
-    // Occupied today (checked in)
-    const occupiedToday = await prisma.reservation.count({
-      where: { status: 'CHECKED_IN' },
-    });
-
-    // Arrivals today
-    const arrivalsToday = await prisma.reservation.findMany({
-      where: {
-        checkIn: { gte: todayStart, lte: todayEnd },
-        status: { in: ['PENDING', 'CONFIRMED'] },
-      },
-      include: { guest: { select: { name: true, phone: true } }, room: { select: { number: true } } },
-      orderBy: { checkIn: 'asc' },
-    });
-
-    // Departures today
-    const departuresToday = await prisma.reservation.findMany({
-      where: {
-        checkOut: { gte: todayStart, lte: todayEnd },
-        status: 'CHECKED_IN',
-      },
-      include: { guest: { select: { name: true } }, room: { select: { number: true } } },
-      orderBy: { checkOut: 'asc' },
-    });
-
-    // Revenue this month - use indexed query
-    const revenueResult = await prisma.payment.aggregate({
-      where: {
-        status: 'COMPLETED',
-        createdAt: { gte: monthStart, lte: monthEnd },
-      },
-      _sum: { amount: true },
-    });
-
-    // Pending reservations count - use indexed query
-    const pendingReservations = await prisma.reservation.count({
-      where: { status: { in: ['PENDING', 'CONFIRMED'] } },
-    });
-
-    // Next 5 upcoming arrivals - use indexed query
-    const upcomingArrivals = await prisma.reservation.findMany({
-      where: {
-        checkIn: { gt: today },
-        status: { in: ['PENDING', 'CONFIRMED'] },
-      },
-      take: 5,
-      include: { guest: { select: { name: true } }, room: { select: { number: true } } },
-      orderBy: { checkIn: 'asc' },
-    });
-
-    // Total rooms - already uses count with no filter (efficient)
+    const [
+      totalRooms,
+      occupiedToday,
+      arrivalsToday,
+      departuresToday,
+      revenueResult,
+      pendingReservations,
+      upcomingArrivals,
+    ] = await Promise.all([
+      prisma.room.count(),
+      prisma.reservation.count({ where: { status: 'CHECKED_IN' } }),
+      prisma.reservation.findMany({
+        where: { checkIn: { gte: todayStart, lte: todayEnd }, status: { in: ['PENDING', 'CONFIRMED'] } },
+        include: { guest: { select: { name: true } }, room: { select: { number: true } } },
+        orderBy: { checkIn: 'asc' },
+      }),
+      prisma.reservation.findMany({
+        where: { checkOut: { gte: todayStart, lte: todayEnd }, status: 'CHECKED_IN' },
+        include: { guest: { select: { name: true } }, room: { select: { number: true } } },
+        orderBy: { checkOut: 'asc' },
+      }),
+      prisma.payment.aggregate({
+        where: { status: 'COMPLETED', createdAt: { gte: startOfMonth(today), lte: endOfMonth(today) } },
+        _sum: { amount: true },
+      }),
+      prisma.reservation.count({ where: { status: { in: ['PENDING', 'CONFIRMED'] } } }),
+      prisma.reservation.findMany({
+        where: { checkIn: { gt: today }, status: { in: ['PENDING', 'CONFIRMED'] } },
+        take: 5, include: { guest: { select: { name: true } }, room: { select: { number: true } } },
+        orderBy: { checkIn: 'asc' },
+      }),
+    ]);
 
     res.json({
       stats: {
@@ -79,8 +55,8 @@ router.get('/stats', authenticate, async (req, res, next) => {
         revenueThisMonth: revenueResult._sum.amount || 0,
         pendingReservations,
         upcomingArrivals,
-        arrivalsToday,
-        departuresToday,
+        arrivals: arrivalsToday,
+        departures: departuresToday,
       },
     });
   } catch (err) {

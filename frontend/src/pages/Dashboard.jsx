@@ -1,7 +1,8 @@
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
-import { Bed, TrendingUp, Users, CalendarDays, ArrowRight, Sunrise, Sun, Moon, Download } from 'lucide-react';
+import { Bed, TrendingUp, Users, CalendarDays, ArrowRight, Sunrise, Sun, Moon, Download, LogIn, LogOut } from 'lucide-react';
 import { useDashboardStats } from '../hooks/useQueries';
+import { useUpdateReservationStatus } from '../hooks/useQueries';
 import { useExportReservations } from '../hooks/useExport';
 import { Link } from 'react-router-dom';
 import { formatCurrencyCompact } from '../utils/currency';
@@ -46,7 +47,9 @@ function StatCard({ icon: Icon, label, value, sub, color = 'primary' }) {
   );
 }
 
-function ArrivalRow({ guest, room, checkIn }) {
+function ArrivalRow({ reservation, onAction }) {
+  const { guest, room, checkIn, status } = reservation;
+  const canCheckIn = status === 'PENDING' || status === 'CONFIRMED';
   return (
     <div role="listitem" className="flex items-center gap-3 py-2.5 border-b border-surface-100 last:border-0">
       <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 text-xs font-semibold flex-shrink-0" aria-hidden="true">
@@ -56,9 +59,48 @@ function ArrivalRow({ guest, room, checkIn }) {
         <p className="text-sm font-medium text-surface-900 truncate">{guest.name}</p>
         <p className="text-xs text-surface-500">Hab. {room.number}</p>
       </div>
-      <div className="text-right flex-shrink-0">
-        <p className="text-xs font-medium text-surface-700">{format(new Date(checkIn), 'HH:mm')}</p>
-        <p className="text-xs text-surface-500">{format(new Date(checkIn), 'dd MMM', { locale: es })}</p>
+      <div className="text-right flex-shrink-0 flex items-center gap-2">
+        <div>
+          <p className="text-xs font-medium text-surface-700">{format(new Date(checkIn), 'HH:mm')}</p>
+          <p className="text-xs text-surface-500">{format(new Date(checkIn), 'dd MMM', { locale: es })}</p>
+        </div>
+        {canCheckIn && (
+          <button
+            onClick={() => onAction(reservation.id, 'CHECKED_IN')}
+            aria-label={`Realizar check-in de ${guest.name}`}
+            className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+            title="Check-in">
+            <LogIn className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DepartureRow({ reservation, onAction }) {
+  const { guest, room, checkOut } = reservation;
+  return (
+    <div role="listitem" className="flex items-center gap-3 py-2.5 border-b border-surface-100 last:border-0">
+      <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 text-xs font-semibold flex-shrink-0" aria-hidden="true">
+        {guest.name.charAt(0)}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-surface-900 truncate">{guest.name}</p>
+        <p className="text-xs text-surface-500">Hab. {room.number}</p>
+      </div>
+      <div className="text-right flex-shrink-0 flex items-center gap-2">
+        <div>
+          <p className="text-xs font-medium text-surface-700">{format(new Date(checkOut), 'HH:mm')}</p>
+          <p className="text-xs text-surface-500">{format(new Date(checkOut), 'dd MMM', { locale: es })}</p>
+        </div>
+        <button
+          onClick={() => onAction(reservation.id, 'CHECKED_OUT')}
+          aria-label={`Realizar check-out de ${guest.name}`}
+          className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
+          title="Check-out">
+          <LogOut className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
@@ -66,10 +108,19 @@ function ArrivalRow({ guest, room, checkIn }) {
 
 export default function Dashboard() {
   const { data, isLoading } = useDashboardStats();
+  const updateStatus = useUpdateReservationStatus();
   const exportReservations = useExportReservations();
   const stats = data?.stats;
   const greeting = getGreeting();
   const GreetingIcon = greeting.icon;
+
+  const handleStatusAction = async (id, status) => {
+    try {
+      await updateStatus.mutateAsync({ id, status });
+    } catch (err) {
+      // mutation has own error toast, no need to handle here
+    }
+  };
 
   const dateStr = format(new Date(), "EEEE, d 'de' MMMM yyyy", { locale: es });
 
@@ -125,7 +176,7 @@ export default function Dashboard() {
           {stats?.arrivalsToday > 0 ? (
             <div role="list" aria-label="Lista de llegadas de hoy">
               {stats.arrivals?.slice(0, 5).map((r) => (
-                <ArrivalRow key={r.id} guest={r.guest} room={r.room} checkIn={r.checkIn} />
+                <ArrivalRow key={r.id} reservation={r} onAction={handleStatusAction} />
               ))}
             </div>
           ) : (
@@ -145,7 +196,7 @@ export default function Dashboard() {
           {stats?.departuresToday > 0 ? (
             <div role="list" aria-label="Lista de salidas de hoy">
               {stats.departures?.slice(0, 5).map((r) => (
-                <ArrivalRow key={r.id} guest={r.guest} room={r.room} checkIn={r.checkOut} />
+                <DepartureRow key={r.id} reservation={r} onAction={handleStatusAction} />
               ))}
             </div>
           ) : (
