@@ -39,7 +39,7 @@ router.get('/:id', authenticate, async (req, res, next) => {
       },
     });
 
-    if (!room) return res.status(404).json({ error: 'Room not found' });
+    if (!room) return res.status(404).json({ error: 'Habitación no encontrada' });
     res.json({ room });
   } catch (err) {
     next(err);
@@ -106,7 +106,7 @@ router.delete('/:id', authenticate, authorize('ADMIN'), async (req, res, next) =
     }
 
     await prisma.room.delete({ where: { id: req.params.id } });
-    res.json({ message: 'Room deleted' });
+    res.json({ message: 'Habitación eliminada' });
 
     // Emit socket event for real-time sync
     const io = req.app.get('io');

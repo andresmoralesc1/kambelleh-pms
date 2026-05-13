@@ -84,14 +84,14 @@ router.post('/refresh', async (req, res, next) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
-      return res.status(401).json({ error: 'No refresh token' });
+      return res.status(401).json({ error: 'No se encontró el token de sesión' });
     }
 
     // Validate token exists in DB (rotation check)
     const stored = await validateRefreshToken(refreshToken);
     if (!stored) {
       clearAuthCookies(res);
-      return res.status(401).json({ error: 'Invalid refresh token' });
+      return res.status(401).json({ error: 'Token de sesión inválido' });
     }
 
     const { default: jwt } = await import('jsonwebtoken');
@@ -101,14 +101,14 @@ router.post('/refresh', async (req, res, next) => {
     } catch {
       await invalidateRefreshToken(refreshToken);
       clearAuthCookies(res);
-      return res.status(401).json({ error: 'Invalid refresh token' });
+      return res.status(401).json({ error: 'Token de sesión inválido' });
     }
 
     const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
     if (!user) {
       await invalidateRefreshToken(refreshToken);
       clearAuthCookies(res);
-      return res.status(401).json({ error: 'User not found' });
+      return res.status(401).json({ error: 'Usuario no encontrado' });
     }
 
     // Rotate: invalidate old token, create new tokens, store new refresh token
@@ -121,7 +121,7 @@ router.post('/refresh', async (req, res, next) => {
     res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role } });
   } catch (err) {
     clearAuthCookies(res);
-    return res.status(401).json({ error: 'Invalid refresh token' });
+    return res.status(401).json({ error: 'Token de sesión inválido' });
   }
 });
 
@@ -137,7 +137,7 @@ router.post('/logout', async (req, res) => {
     await invalidateRefreshToken(refreshToken);
   }
   clearAuthCookies(res);
-  res.json({ message: 'Logged out' });
+  res.json({ message: 'Sesión cerrada' });
 });
 
 export default router;

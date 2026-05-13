@@ -61,7 +61,7 @@ router.get('/:id', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), 
       },
     });
 
-    if (!guest) return res.status(404).json({ error: 'Guest not found' });
+    if (!guest) return res.status(404).json({ error: 'Huésped no encontrado' });
     res.json({ guest });
   } catch (err) {
     next(err);

@@ -31,7 +31,7 @@ router.post('/create-intent', authenticate, authorize('ADMIN', 'MANAGER', 'RECEP
     }
 
     const client = getStripe();
-    if (!client) return res.status(500).json({ error: 'Stripe not configured' });
+    if (!client) return res.status(500).json({ error: 'Stripe no está configurado. Configure STRIPE_SECRET_KEY en las variables de entorno.' });
 
     const paymentIntent = await client.paymentIntents.create({
       amount: Math.round(Number(reservation.totalAmount) * 100), // cents
@@ -146,7 +146,7 @@ router.post('/refund', authenticate, authorize('ADMIN'), async (req, res, next) 
     }
 
     const client = getStripe();
-    if (!client) return res.status(500).json({ error: 'Stripe not configured' });
+    if (!client) return res.status(500).json({ error: 'Stripe no está configurado. Configure STRIPE_SECRET_KEY en las variables de entorno.' });
 
     await client.refunds.create({ payment_intent: payment.stripeChargeId });
 

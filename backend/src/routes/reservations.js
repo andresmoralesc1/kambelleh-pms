@@ -66,7 +66,7 @@ router.get('/:id', authenticate, async (req, res, next) => {
       },
     });
 
-    if (!reservation) return res.status(404).json({ error: 'Reservation not found' });
+    if (!reservation) return res.status(404).json({ error: 'Reserva no encontrada' });
     res.json({ reservation });
   } catch (err) {
     next(err);
@@ -332,14 +332,14 @@ router.patch('/:id/status', authenticate, async (req, res, next) => {
 router.delete('/:id', authenticate, authorize('ADMIN'), async (req, res, next) => {
   try {
     const reservation = await prisma.reservation.findUnique({ where: { id: req.params.id } });
-    if (!reservation) return res.status(404).json({ error: 'Reservation not found' });
+    if (!reservation) return res.status(404).json({ error: 'Reserva no encontrada' });
 
     if (['CHECKED_IN', 'CHECKED_OUT'].includes(reservation.status)) {
       return res.status(409).json({ error: 'No se puede eliminar una reserva con estado check-in o check-out' });
     }
 
     await prisma.reservation.delete({ where: { id: req.params.id } });
-    res.json({ message: 'Reservation deleted' });
+    res.json({ message: 'Reserva eliminada' });
   } catch (err) {
     next(err);
   }

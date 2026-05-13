@@ -19,8 +19,8 @@ const router = express.Router();
 async function stripeWebhook(req, res) {
   const client = getStripe();
   if (!client) {
-    console.error('Stripe not configured - webhook skipped');
-    return res.status(500).send('Stripe not configured');
+    console.error('Stripe no configurado - webhook omitido');
+    return res.status(500).send('Stripe no está configurado');
   }
 
   const sig = req.headers['stripe-signature'];
@@ -34,7 +34,7 @@ async function stripeWebhook(req, res) {
     );
   } catch (err) {
     console.error('Webhook signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    return res.status(400).send(`Error de webhook: ${err.message}`);
   }
 
   // Handle the event
