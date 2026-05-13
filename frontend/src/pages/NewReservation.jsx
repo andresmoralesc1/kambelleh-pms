@@ -102,7 +102,7 @@ export default function NewReservation() {
   };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
+    <div className="p-6 max-w-3xl mx-auto bg-surface-50 dark:bg-surface-900 min-h-screen">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <button onClick={handleBack}
