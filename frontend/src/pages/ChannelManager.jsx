@@ -19,12 +19,12 @@ function AirbnbCard() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl border border-surface-200 p-6 animate-pulse">
+      <div className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 p-6 animate-pulse">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-surface-200 rounded-xl" />
+          <div className="w-12 h-12 bg-surface-200 dark:bg-surface-700 rounded-xl" />
           <div className="flex-1 space-y-2">
-            <div className="h-5 bg-surface-200 rounded w-1/3" />
-            <div className="h-4 bg-surface-200 rounded w-1/4" />
+            <div className="h-5 bg-surface-200 dark:bg-surface-700 rounded w-1/3" />
+            <div className="h-4 bg-surface-200 dark:bg-surface-700 rounded w-1/4" />
           </div>
         </div>
       </div>
@@ -81,7 +81,7 @@ function AirbnbCard() {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-surface-200 p-6">
+    <div className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 p-6">
       <div className="flex items-start justify-between mb-5">
         <div className="flex items-center gap-4">
           {/* Airbnb Logo placeholder */}
@@ -89,22 +89,22 @@ function AirbnbCard() {
             <span className="text-white text-lg font-bold">A</span>
           </div>
           <div>
-            <h3 className="font-semibold text-surface-900 text-lg">Airbnb</h3>
+            <h3 className="font-semibold text-surface-900 dark:text-surface-100 text-lg">Airbnb</h3>
             <div className="flex items-center gap-2 mt-0.5">
               {isConnected ? (
                 <>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-medium">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
                     <CheckCircle className="w-3 h-3" />
                     Conectado
                   </span>
                   {status.mockMode && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-xs font-medium">
                       Modo demo
                     </span>
                   )}
                 </>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-200 text-surface-500 text-xs font-medium">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-200 dark:bg-surface-700 text-surface-500 dark:text-surface-400 text-xs font-medium">
                   <WifiOff className="w-3 h-3" />
                   Desconectado
                 </span>
@@ -117,11 +117,11 @@ function AirbnbCard() {
       {/* Info */}
       <div className="space-y-2 mb-5 text-sm">
         <div className="flex items-center justify-between">
-          <span className="text-surface-500">Última sincronización</span>
-          <span className="text-surface-700 font-medium">{formatLastSync(status.lastSync)}</span>
+          <span className="text-surface-500 dark:text-surface-400">Última sincronización</span>
+          <span className="text-surface-700 dark:text-surface-300 font-medium">{formatLastSync(status.lastSync)}</span>
         </div>
         {!status.credentialsConfigured && !status.mockMode && (
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs">
+          <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-xs">
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <span>Credenciales no configuradas. Configure AIRBNB_CLIENT_ID y AIRBNB_CLIENT_SECRET en el archivo .env</span>
           </div>
@@ -143,7 +143,7 @@ function AirbnbCard() {
             <button
               onClick={handleDisconnect}
               disabled={disconnect.isPending}
-              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-surface-300 hover:bg-surface-50 text-surface-700 text-sm font-medium transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-700 dark:text-surface-300 text-sm font-medium transition-colors disabled:opacity-50"
             >
               Desconectar
             </button>
@@ -165,27 +165,27 @@ function AirbnbCard() {
 
 function PlaceholderCard({ name, comingSoon = true }) {
   return (
-    <div className="bg-white rounded-2xl border border-surface-200 p-6 opacity-60">
+    <div className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 p-6 opacity-60">
       <div className="flex items-start justify-between mb-5">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-surface-200 flex items-center justify-center">
-            <span className="text-surface-400 text-lg font-bold">{name[0]}</span>
+          <div className="w-12 h-12 rounded-xl bg-surface-200 dark:bg-surface-700 flex items-center justify-center">
+            <span className="text-surface-400 dark:text-surface-500 text-lg font-bold">{name[0]}</span>
           </div>
           <div>
-            <h3 className="font-semibold text-surface-900 text-lg">{name}</h3>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-100 text-surface-400 text-xs font-medium mt-0.5">
+            <h3 className="font-semibold text-surface-900 dark:text-surface-100 text-lg">{name}</h3>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-100 dark:bg-surface-700 text-surface-400 dark:text-surface-500 text-xs font-medium mt-0.5">
               Próximamente
             </span>
           </div>
         </div>
       </div>
 
-      <div className="h-8 bg-surface-100 rounded-lg mb-4" />
+      <div className="h-8 bg-surface-100 dark:bg-surface-700 rounded-lg mb-4" />
 
       <div className="flex flex-col gap-2">
         <button
           disabled
-          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-surface-100 text-surface-400 text-sm font-medium cursor-not-allowed"
+          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-surface-100 dark:bg-surface-700 text-surface-400 dark:text-surface-500 text-sm font-medium cursor-not-allowed"
         >
           <ExternalLink className="w-4 h-4" />
           No disponible
@@ -197,12 +197,12 @@ function PlaceholderCard({ name, comingSoon = true }) {
 
 export default function ChannelManager() {
   return (
-    <div className="p-6 space-y-6" role="main">
+    <div className="p-6 space-y-6 bg-surface-50 dark:bg-surface-900 min-h-screen" role="main">
       {/* Header */}
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900">Canales</h1>
-          <p className="text-surface-500 text-sm mt-0.5">Gestiona la conexión con canales de reservas</p>
+          <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-100">Canales</h1>
+          <p className="text-surface-500 dark:text-surface-400 text-sm mt-0.5">Gestiona la conexión con canales de reservas</p>
         </div>
       </header>
 
@@ -214,14 +214,14 @@ export default function ChannelManager() {
       </div>
 
       {/* Info box */}
-      <div className="bg-surface-50 rounded-xl p-4 border border-surface-200">
+      <div className="bg-surface-50 dark:bg-surface-800 rounded-xl p-4 border border-surface-200 dark:border-surface-700">
         <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
-            <Wifi className="w-4 h-4 text-primary-600" />
+          <div className="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0">
+            <Wifi className="w-4 h-4 text-primary-600 dark:text-primary-400" />
           </div>
           <div>
-            <h3 className="font-medium text-surface-900 text-sm">Integración con canales</h3>
-            <p className="text-surface-600 text-xs mt-1">
+            <h3 className="font-medium text-surface-900 dark:text-surface-100 text-sm">Integración con canales</h3>
+            <p className="text-surface-600 dark:text-surface-400 text-xs mt-1">
               Conecta Kambelleh con canales de reservas como Airbnb para sincronizar automáticamente tus reservas.
               Las reservas importadas desde canales externos aparecerán marcadas con el origen "AIRBNB" en el sistema.
               Activa el modo demo para probar la integración sin credenciales reales.
