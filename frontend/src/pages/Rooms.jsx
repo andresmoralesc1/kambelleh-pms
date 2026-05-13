@@ -41,14 +41,14 @@ function RoomModal({ room, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="room-modal-title">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
-        <h2 id="room-modal-title" className="text-lg font-bold text-surface-900 mb-4">
+    <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="room-modal-title">
+      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+        <h2 id="room-modal-title" className="text-lg font-bold text-surface-900 dark:text-surface-100 mb-4">
           {room ? 'Editar' : 'Nueva'} habitación
         </h2>
 
         {error && (
-          <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+          <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
             {error}
           </div>
         )}
@@ -56,67 +56,67 @@ function RoomModal({ room, onClose }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-surface-700 mb-1">Número *</label>
+              <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Número *</label>
               <input
                 value={form.number} onChange={e => setForm({ ...form, number: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+                className="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
                 required placeholder="101"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-surface-700 mb-1">Piso</label>
+              <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Piso</label>
               <input type="number" value={form.floor} onChange={e => setForm({ ...form, floor: parseInt(e.target.value) })}
-                className="w-full px-3 py-2 rounded-lg border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+                className="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-surface-700 mb-1">Nombre *</label>
+            <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Nombre *</label>
             <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
               required placeholder="Habitación Doble"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-surface-700 mb-1">Tipo</label>
+              <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Tipo</label>
               <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow">
+                className="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow">
                 <option value="PRIVATE">Privada</option>
                 <option value="SHARED">Compartida</option>
                 <option value="DORM">Dormitorio</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-surface-700 mb-1">Capacidad</label>
+              <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Capacidad</label>
               <input type="number" value={form.capacity} onChange={e => setForm({ ...form, capacity: parseInt(e.target.value) })}
-                className="w-full px-3 py-2 rounded-lg border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+                className="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
                 min="1"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-surface-700 mb-1">Precio / noche (€) *</label>
+            <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Precio / noche (€) *</label>
             <input type="number" step="0.01" value={form.pricePerNight}
               onChange={e => setForm({ ...form, pricePerNight: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
               required placeholder="65.00"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-surface-700 mb-2">Comodidades</label>
+            <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-2">Comodidades</label>
             <div className="flex gap-2 flex-wrap">
               {['WiFi', 'A/C', 'Desayuno', 'TV'].map(a => (
                 <button key={a} type="button"
                   onClick={() => setForm({ ...form, amenities: form.amenities.includes(a) ? form.amenities.filter(x => x !== a) : [...form.amenities, a] })}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                     form.amenities.includes(a)
-                      ? 'bg-primary-50 border-primary-300 text-primary-700'
-                      : 'border-surface-300 text-surface-600 hover:bg-surface-50'
+                      ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-300 dark:border-primary-700 text-primary-700 dark:text-primary-300'
+                      : 'border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-700'
                   }`}
                 >
                   {a}
@@ -127,7 +127,7 @@ function RoomModal({ room, onClose }) {
 
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} aria-label="Cerrar"
-              className="flex-1 px-4 py-2 rounded-xl border border-surface-300 text-sm font-medium text-surface-600 hover:bg-surface-50 transition-colors">
+              className="flex-1 px-4 py-2 rounded-xl border border-surface-300 dark:border-surface-600 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">
               Cancelar
             </button>
             <button type="submit" disabled={createRoom.isPending}
@@ -190,16 +190,16 @@ export default function Rooms() {
   const statusLabels = { ALL: 'Todas', AVAILABLE: 'Disponibles', OCCUPIED: 'Ocupadas', MAINTENANCE: 'Mantenimiento' };
 
   return (
-    <div className="p-6 space-y-5" role="main">
+    <div className="p-6 space-y-5 bg-surface-50 dark:bg-surface-900 min-h-screen" role="main">
       {/* Header */}
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900">Habitaciones</h1>
-          <p className="text-surface-500 text-sm mt-0.5">{rooms.length} habitaciones registradas</p>
+          <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-100">Habitaciones</h1>
+          <p className="text-surface-500 dark:text-surface-400 text-sm mt-0.5">{rooms.length} habitaciones registradas</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportRooms}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-surface-300 bg-white hover:bg-surface-50 text-surface-700 text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-700 dark:text-surface-300 text-sm font-medium transition-colors"
             aria-label="Exportar habitaciones a CSV">
             <Download className="w-4 h-4" aria-hidden="true" /> Exportar CSV
           </button>
@@ -217,8 +217,8 @@ export default function Rooms() {
           <button key={f} onClick={() => setFilter(f)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               filter === f
-                ? 'bg-surface-800 text-white'
-                : 'bg-white border border-surface-200 text-surface-600 hover:bg-surface-50'
+                ? 'bg-surface-800 dark:bg-primary-600 text-white dark:text-white'
+                : 'bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-700'
             }`}
             aria-pressed={filter === f}>
             {statusLabels[f]}
@@ -230,19 +230,19 @@ export default function Rooms() {
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="h-52 bg-surface-200 rounded-2xl animate-pulse" />
+            <div key={i} className="h-52 bg-white dark:bg-surface-800 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
         /* Empty state */
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-surface-100 flex items-center justify-center mb-4">
-            <Search className="w-7 h-7 text-surface-500" />
+          <div className="w-14 h-14 rounded-2xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center mb-4">
+            <Search className="w-7 h-7 text-surface-500 dark:text-surface-400" />
           </div>
-          <h3 className="font-semibold text-surface-700 mb-1">
+          <h3 className="font-semibold text-surface-700 dark:text-surface-300 mb-1">
             {filter === 'ALL' ? 'Sin habitaciones' : `No hay habitaciones ${statusLabels[filter].toLowerCase()}`}
           </h3>
-          <p className="text-sm text-surface-500 mb-4 max-w-xs">
+          <p className="text-sm text-surface-500 dark:text-surface-400 mb-4 max-w-xs">
             {filter === 'ALL'
               ? 'Crea tu primera habitación para comenzar a gestionar reservas'
               : `No hay habitaciones en ${statusLabels[filter].toLowerCase()} actualmente`}
@@ -261,16 +261,16 @@ export default function Rooms() {
             const status = statusConfig[room.status] || statusConfig.AVAILABLE;
             return (
               <div key={room.id}
-                className="bg-white rounded-2xl border border-surface-200 p-5 hover:shadow-md transition-shadow">
+                className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 p-5 hover:shadow-md transition-shadow">
                 {/* Top row */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${status.bg.replace('100', '50')}`}>
-                      <DoorOpen className={`w-5 h-5 ${status.text.replace('700', '600')}`} />
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${status.bg.replace('100', '50').replace('dark:bg-surface-800', '')} ${status.bg.replace('100', '50').replace('dark:bg-surface-800', '').includes('emerald') ? 'dark:bg-emerald-900/30' : status.bg.replace('100', '50').replace('dark:bg-surface-800', '').includes('red') ? 'dark:bg-red-900/30' : 'dark:bg-amber-900/30'}`}>
+                      <DoorOpen className={`w-5 h-5 ${status.text.replace('700', '600').replace('dark:text-surface-800', '')}`} />
                     </div>
                     <div>
-                      <p className="font-bold text-surface-900">#{room.number}</p>
-                      <p className="text-xs text-surface-500">{typeLabels[room.type] || room.type}</p>
+                      <p className="font-bold text-surface-900 dark:text-surface-100">#{room.number}</p>
+                      <p className="text-xs text-surface-500 dark:text-surface-400">{typeLabels[room.type] || room.type}</p>
                     </div>
                   </div>
                   <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${status.bg} ${status.text}`}
@@ -280,8 +280,8 @@ export default function Rooms() {
                   </span>
                 </div>
 
-                <h3 className="font-semibold text-surface-800 text-sm mb-1">{room.name}</h3>
-                <p className="text-xs text-surface-500 mb-3">Piso {room.floor} · Capacidad {room.capacity}</p>
+                <h3 className="font-semibold text-surface-800 dark:text-surface-200 text-sm mb-1">{room.name}</h3>
+                <p className="text-xs text-surface-500 dark:text-surface-400 mb-3">Piso {room.floor} · Capacidad {room.capacity}</p>
 
                 {/* Amenities */}
                 {room.amenities?.length > 0 && (
@@ -289,7 +289,7 @@ export default function Rooms() {
                     {room.amenities.map(a => {
                       const Icon = amenityIcons[a] || Bed;
                       return (
-                        <div key={a} className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface-100 text-surface-600"
+                        <div key={a} className="flex items-center gap-1 px-2 py-0.5 rounded bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400"
                           title={a === 'WiFi' ? 'WiFi gratuito' : a === 'A/C' ? 'Aire acondicionado' : a === 'TV' ? 'Televisión' : a}>
                           <Icon className="w-3.5 h-3.5" />
                           <span className="text-xs">{a}</span>
@@ -300,17 +300,17 @@ export default function Rooms() {
                 )}
 
                 {/* Footer */}
-                <div className="flex items-center justify-between pt-3 border-t border-surface-100">
-                  <span className="text-lg font-bold text-primary-600">{formatCurrencyCompact(room.pricePerNight)}</span>
+                <div className="flex items-center justify-between pt-3 border-t border-surface-100 dark:border-surface-700">
+                  <span className="text-lg font-bold text-primary-600 dark:text-primary-400">{formatCurrencyCompact(room.pricePerNight)}</span>
                   <div className="flex gap-1">
                     <button onClick={() => setShowModal(room)}
                       aria-label={`Editar habitación ${room.number}`}
-                      className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-500 hover:text-surface-700 transition-colors">
+                      className="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDelete(room)}
                       aria-label={`Eliminar habitación ${room.number}`}
-                      className="p-1.5 rounded-lg hover:bg-red-50 text-surface-500 hover:text-red-600 transition-colors">
+                      className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -323,19 +323,19 @@ export default function Rooms() {
 
       {showModal && <RoomModal room={showModal === true ? null : showModal} onClose={() => setShowModal(false)} />}
       {confirmState && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
+          <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
               </div>
               <div>
-                <h2 className="text-lg font-bold text-surface-900">{confirmState.title}</h2>
+                <h2 className="text-lg font-bold text-surface-900 dark:text-surface-100">{confirmState.title}</h2>
               </div>
             </div>
-            <p className="text-sm text-surface-600 mb-6">{confirmState.message}</p>
+            <p className="text-sm text-surface-600 dark:text-surface-400 mb-6">{confirmState.message}</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 text-surface-700 text-sm font-medium hover:bg-surface-50 transition-colors">Cancelar</button>
+              <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-400 text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">Cancelar</button>
               <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors">{confirmState.confirmLabel}</button>
             </div>
           </div>
