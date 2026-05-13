@@ -19,7 +19,7 @@ export default function TopRooms({ topRooms }) {
                 </p>
                 <p className="text-xs text-surface-500">{r.reservation_count} reservas</p>
               </div>
-              <p className="text-sm font-semibold text-surface-900 dark:text-white flex-shrink-0">
+              <p className="text-sm font-semibold text-surface-900 dark:text-surface-100 flex-shrink-0">
                 {fmt.format(Number(r.total_revenue))}
               </p>
             </div>

@@ -19,6 +19,7 @@ const Calendar        = lazy(() => import('./pages/Calendar'));
 const NewReservation  = lazy(() => import('./pages/NewReservation'));
 const Settings        = lazy(() => import('./pages/Settings'));
 const Staff           = lazy(() => import('./pages/Staff'));
+const BookingPage     = lazy(() => import('./pages/BookingPage'));
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30000, retry: 1 } } });
 
@@ -52,6 +53,7 @@ export default function App() {
               <BrowserRouter>
                 <Routes>
                   <Route path="/login" element={<Login />} />
+                  <Route path="/booking" element={<BookingPage />} />
                   <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                     <Route index element={<Navigate to="/dashboard" />} />
                     <Route path="dashboard" element={<Dashboard />} />
