@@ -29,18 +29,18 @@ export function roomColor(index) {
 
 function StatCard({ icon: Icon, label, value, sub, color = 'primary' }) {
   const colors = {
-    primary: 'bg-primary-50 text-primary-600',
-    green: 'bg-emerald-50 text-emerald-600',
-    amber: 'bg-amber-50 text-amber-600',
-    blue: 'bg-blue-50 text-blue-600',
+    primary: 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300',
+    green: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-300',
+    amber: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300',
+    blue: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300',
   };
   return (
-    <div className="bg-white rounded-2xl border border-surface-200 p-5 shadow-sm">
+    <div className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 p-5 shadow-sm">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs font-medium text-surface-500 uppercase tracking-wide">{label}</p>
-          <p className="text-3xl font-bold text-surface-900 mt-1">{value}</p>
-          {sub && <p className="text-xs text-surface-500 mt-1">{sub}</p>}
+          <p className="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide">{label}</p>
+          <p className="text-3xl font-bold text-surface-900 dark:text-surface-100 mt-1">{value}</p>
+          {sub && <p className="text-xs text-surface-500 dark:text-surface-400 mt-1">{sub}</p>}
         </div>
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colors[color]}`}>
           <Icon className="w-5 h-5" />
@@ -54,24 +54,24 @@ function ArrivalRow({ reservation, onAction }) {
   const { guest, room, checkIn, status } = reservation;
   const canCheckIn = status === 'PENDING' || status === 'CONFIRMED';
   return (
-    <div role="listitem" className="flex items-center gap-3 py-2.5 border-b border-surface-100 last:border-0">
-      <div className="w-8 h-8 rounded-full bg-primary-50 flex items-center justify-center text-primary-600 text-xs font-semibold flex-shrink-0" aria-hidden="true">
+    <div role="listitem" className="flex items-center gap-3 py-2.5 border-b border-surface-100 dark:border-surface-700 last:border-0">
+      <div className="w-8 h-8 rounded-full bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-300 text-xs font-semibold flex-shrink-0" aria-hidden="true">
         {guest.name.charAt(0)}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-surface-900 truncate">{guest.name}</p>
-        <p className="text-xs text-surface-500">Hab. {room.number}</p>
+        <p className="text-sm font-medium text-surface-900 dark:text-surface-100 truncate">{guest.name}</p>
+        <p className="text-xs text-surface-500 dark:text-surface-400">Hab. {room.number}</p>
       </div>
       <div className="text-right flex-shrink-0 flex items-center gap-2">
         <div>
-          <p className="text-xs font-medium text-surface-700">{format(new Date(checkIn), 'HH:mm')}</p>
-          <p className="text-xs text-surface-500">{format(new Date(checkIn), 'dd MMM', { locale: es })}</p>
+          <p className="text-xs font-medium text-surface-700 dark:text-surface-300">{format(new Date(checkIn), 'HH:mm')}</p>
+          <p className="text-xs text-surface-500 dark:text-surface-400">{format(new Date(checkIn), 'dd MMM', { locale: es })}</p>
         </div>
         {canCheckIn && (
           <button
             onClick={() => onAction(reservation.id, 'CHECKED_IN')}
             aria-label={`Realizar check-in de ${guest.name}`}
-            className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+            className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
             title="Check-in">
             <LogIn className="w-4 h-4" />
           </button>
@@ -84,23 +84,23 @@ function ArrivalRow({ reservation, onAction }) {
 function DepartureRow({ reservation, onAction }) {
   const { guest, room, checkOut } = reservation;
   return (
-    <div role="listitem" className="flex items-center gap-3 py-2.5 border-b border-surface-100 last:border-0">
-      <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 text-xs font-semibold flex-shrink-0" aria-hidden="true">
+    <div role="listitem" className="flex items-center gap-3 py-2.5 border-b border-surface-100 dark:border-surface-700 last:border-0">
+      <div className="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-300 text-xs font-semibold flex-shrink-0" aria-hidden="true">
         {guest.name.charAt(0)}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-surface-900 truncate">{guest.name}</p>
-        <p className="text-xs text-surface-500">Hab. {room.number}</p>
+        <p className="text-sm font-medium text-surface-900 dark:text-surface-100 truncate">{guest.name}</p>
+        <p className="text-xs text-surface-500 dark:text-surface-400">Hab. {room.number}</p>
       </div>
       <div className="text-right flex-shrink-0 flex items-center gap-2">
         <div>
-          <p className="text-xs font-medium text-surface-700">{format(new Date(checkOut), 'HH:mm')}</p>
-          <p className="text-xs text-surface-500">{format(new Date(checkOut), 'dd MMM', { locale: es })}</p>
+          <p className="text-xs font-medium text-surface-700 dark:text-surface-300">{format(new Date(checkOut), 'HH:mm')}</p>
+          <p className="text-xs text-surface-500 dark:text-surface-400">{format(new Date(checkOut), 'dd MMM', { locale: es })}</p>
         </div>
         <button
           onClick={() => onAction(reservation.id, 'CHECKED_OUT')}
           aria-label={`Realizar check-out de ${guest.name}`}
-          className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
+          className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors"
           title="Check-out">
           <LogOut className="w-4 h-4" />
         </button>
@@ -143,21 +143,21 @@ export default function Dashboard() {
   if (isLoading) return <DashboardSkeleton />;
 
   return (
-    <div className="p-6 space-y-6" role="main">
+    <div className="p-6 space-y-6 bg-surface-50 dark:bg-surface-900" role="main">
       {/* Header */}
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center" aria-hidden="true">
-            <GreetingIcon className="w-5 h-5 text-primary-600" />
+          <div className="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center" aria-hidden="true">
+            <GreetingIcon className="w-5 h-5 text-primary-600 dark:text-primary-300" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-surface-900">{greeting.text}</h1>
-            <p className="text-surface-500 text-sm mt-0.5 capitalize">{dateStr}</p>
+            <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-100">{greeting.text}</h1>
+            <p className="text-surface-500 dark:text-surface-400 text-sm mt-0.5 capitalize">{dateStr}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={exportReservations}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-surface-300 bg-white hover:bg-surface-50 text-surface-700 text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-700 dark:text-surface-300 text-sm font-medium transition-colors"
             aria-label="Exportar reservas del mes a CSV">
             <Download className="w-4 h-4" aria-hidden="true" /> Exportar mes
           </button>
@@ -184,10 +184,10 @@ export default function Dashboard() {
       {/* Content grid */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Arrivals today */}
-        <section className="bg-white rounded-2xl border border-surface-200 p-5 shadow-sm" aria-labelledby="arrivals-heading">
+        <section className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 p-5 shadow-sm" aria-labelledby="arrivals-heading">
           <div className="flex items-center justify-between mb-4">
-            <h2 id="arrivals-heading" className="font-semibold text-surface-900">Llegadas de hoy</h2>
-            <span className="text-xs px-2 py-1 rounded-full bg-primary-50 text-primary-600 font-medium" aria-label={`${stats?.arrivalsToday || 0} llegadas`}>{stats?.arrivalsToday || 0}</span>
+            <h2 id="arrivals-heading" className="font-semibold text-surface-900 dark:text-surface-100">Llegadas de hoy</h2>
+            <span className="text-xs px-2 py-1 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-300 font-medium" aria-label={`${stats?.arrivalsToday || 0} llegadas`}>{stats?.arrivalsToday || 0}</span>
           </div>
           {stats?.arrivalsToday > 0 ? (
             <div role="list" aria-label="Lista de llegadas de hoy">
@@ -196,7 +196,7 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-surface-500" role="status" aria-live="polite">
+            <div className="text-center py-8 text-surface-500 dark:text-surface-400" role="status" aria-live="polite">
               <CalendarDays className="w-8 h-8 mx-auto mb-2 opacity-40" aria-hidden="true" />
               <p className="text-sm">No hay llegadas hoy</p>
             </div>
@@ -204,10 +204,10 @@ export default function Dashboard() {
         </section>
 
         {/* Departures today */}
-        <section className="bg-white rounded-2xl border border-surface-200 p-5 shadow-sm" aria-labelledby="departures-heading">
+        <section className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 p-5 shadow-sm" aria-labelledby="departures-heading">
           <div className="flex items-center justify-between mb-4">
-            <h2 id="departures-heading" className="font-semibold text-surface-900">Salidas de hoy</h2>
-            <span className="text-xs px-2 py-1 rounded-full bg-amber-50 text-amber-600 font-medium" aria-label={`${stats?.departuresToday || 0} salidas`}>{stats?.departuresToday || 0}</span>
+            <h2 id="departures-heading" className="font-semibold text-surface-900 dark:text-surface-100">Salidas de hoy</h2>
+            <span className="text-xs px-2 py-1 rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300 font-medium" aria-label={`${stats?.departuresToday || 0} salidas`}>{stats?.departuresToday || 0}</span>
           </div>
           {stats?.departuresToday > 0 ? (
             <div role="list" aria-label="Lista de salidas de hoy">
@@ -216,7 +216,7 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-surface-500" role="status" aria-live="polite">
+            <div className="text-center py-8 text-surface-500 dark:text-surface-400" role="status" aria-live="polite">
               <CalendarDays className="w-8 h-8 mx-auto mb-2 opacity-40" aria-hidden="true" />
               <p className="text-sm">No hay salidas hoy</p>
             </div>
@@ -224,10 +224,10 @@ export default function Dashboard() {
         </section>
 
         {/* Upcoming reservations */}
-        <section className="bg-white rounded-2xl border border-surface-200 p-5 shadow-sm lg:col-span-2" aria-labelledby="upcoming-heading">
+        <section className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 p-5 shadow-sm lg:col-span-2" aria-labelledby="upcoming-heading">
           <div className="flex items-center justify-between mb-4">
-            <h2 id="upcoming-heading" className="font-semibold text-surface-900">Próximas reservas</h2>
-            <Link to="/reservations" className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1" aria-label="Ver todas las reservas">
+            <h2 id="upcoming-heading" className="font-semibold text-surface-900 dark:text-surface-100">Próximas reservas</h2>
+            <Link to="/reservations" className="text-xs text-primary-600 dark:text-primary-300 hover:text-primary-700 dark:hover:text-primary-200 font-medium flex items-center gap-1" aria-label="Ver todas las reservas">
               Ver todas <ArrowRight className="w-3 h-3" aria-hidden="true" />
             </Link>
           </div>
@@ -235,20 +235,20 @@ export default function Dashboard() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3" role="list" aria-label="Próximas reservas">
               {stats.upcomingArrivals.map((r) => (
                 <div key={r.id}
-                  className="flex items-center gap-3 p-3 rounded-xl border border-surface-200 hover:border-surface-300 transition-colors"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-surface-200 dark:border-surface-700 hover:border-surface-300 dark:hover:border-surface-600 transition-colors"
                   role="listitem">
-                  <div className="w-9 h-9 rounded-full bg-surface-100 flex items-center justify-center text-sm font-semibold text-surface-600 flex-shrink-0" aria-hidden="true">
+                  <div className="w-9 h-9 rounded-full bg-surface-100 dark:bg-surface-700 flex items-center justify-center text-sm font-semibold text-surface-600 dark:text-surface-300 flex-shrink-0" aria-hidden="true">
                     {r.guest.name.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-surface-900 truncate">{r.guest.name}</p>
-                    <p className="text-xs text-surface-500">Hab. {r.room.number} · {format(new Date(r.checkIn), 'dd MMM', { locale: es })}</p>
+                    <p className="text-sm font-medium text-surface-900 dark:text-surface-100 truncate">{r.guest.name}</p>
+                    <p className="text-xs text-surface-500 dark:text-surface-400">Hab. {r.room.number} · {format(new Date(r.checkIn), 'dd MMM', { locale: es })}</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-center py-6 text-surface-500 text-sm" role="status" aria-live="polite">No hay reservas próximas</p>
+            <p className="text-center py-6 text-surface-500 dark:text-surface-400 text-sm" role="status" aria-live="polite">No hay reservas próximas</p>
           )}
         </section>
       </div>
@@ -258,19 +258,19 @@ export default function Dashboard() {
 
 function DashboardSkeleton() {
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-surface-50 dark:bg-surface-900">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-surface-200 animate-pulse" />
+        <div className="w-10 h-10 rounded-xl bg-surface-200 dark:bg-surface-700 animate-pulse" />
         <div className="space-y-1.5">
-          <div className="h-6 w-32 bg-surface-200 rounded-lg animate-pulse" />
-          <div className="h-4 w-48 bg-surface-100 rounded animate-pulse" />
+          <div className="h-6 w-32 bg-surface-200 dark:bg-surface-700 rounded-lg animate-pulse" />
+          <div className="h-4 w-48 bg-surface-100 dark:bg-surface-700 rounded animate-pulse" />
         </div>
       </div>
       <div className="grid grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => <div key={i} className="h-28 bg-surface-200 rounded-2xl animate-pulse" />)}
+        {[...Array(4)].map((_, i) => <div key={i} className="h-28 bg-white dark:bg-surface-800 rounded-2xl animate-pulse" />)}
       </div>
       <div className="grid grid-cols-2 gap-6">
-        {[...Array(2)].map((_, i) => <div key={i} className="h-48 bg-surface-200 rounded-2xl animate-pulse" />)}
+        {[...Array(2)].map((_, i) => <div key={i} className="h-48 bg-white dark:bg-surface-800 rounded-2xl animate-pulse" />)}
       </div>
     </div>
   );
