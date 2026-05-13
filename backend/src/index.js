@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
+import cron from 'node-cron';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
@@ -155,6 +156,81 @@ const PORT = process.env.PORT || 3001;
 
 server.listen(PORT, () => {
   console.log(`🔥 Kambelleh PMS API running on port ${PORT}`);
+
+  // Schedule reservation reminders — every hour at minute 0
+  cron.schedule('0 * * * *', async () => {
+    try {
+      const { default: prisma } = await import('./config/database.js');
+      const { startOfDay, endOfDay, addDays } = await import('date-fns');
+      const { sendCheckinReminder, sendCheckoutReminder } = await import('./services/email.js');
+
+      const now = new Date();
+      const tomorrow = addDays(startOfDay(now), 1);
+      const tomorrowStart = startOfDay(tomorrow);
+      const tomorrowEnd = endOfDay(tomorrow);
+      const todayStart = startOfDay(now);
+      const todayEnd = endOfDay(now);
+
+      // Check-in reminders for tomorrow
+      const checkinDue = await prisma.reservation.findMany({
+        where: {
+          status: { in: ['PENDING', 'CONFIRMED'] },
+          checkIn: { gte: tomorrowStart, lte: tomorrowEnd },
+          reminderCheckedInSentAt: null,
+        },
+        include: { guest: true, room: true },
+      });
+
+      // Check-out reminders for today
+      const checkoutDue = await prisma.reservation.findMany({
+        where: {
+          status: { in: ['CONFIRMED', 'CHECKED_IN'] },
+          checkOut: { gte: todayStart, lte: todayEnd },
+          reminderCheckedOutSentAt: null,
+        },
+        include: { guest: true, room: true },
+      });
+
+      // Early checkout alerts — rooms checking out tomorrow (for housekeeping)
+      const tomorrowCheckout = await prisma.reservation.findMany({
+        where: {
+          status: 'CHECKED_IN',
+          checkOut: { gte: tomorrowStart, lte: tomorrowEnd },
+        },
+        include: { guest: true, room: true },
+      });
+
+      if (tomorrowCheckout.length > 0) {
+        console.log(`[cron] Housekeeping alerts: ${tomorrowCheckout.length} early checkouts tomorrow`);
+      }
+
+      // Fire reminders
+      await Promise.allSettled(
+        checkinDue.map(async (reservation) => {
+          try {
+            await sendCheckinReminder(reservation.guest, reservation, reservation.room);
+            await prisma.reservation.update({ where: { id: reservation.id }, data: { reminderCheckedInSentAt: now } });
+          } catch (e) { /* fire-and-forget */ }
+        })
+      );
+
+      await Promise.allSettled(
+        checkoutDue.map(async (reservation) => {
+          try {
+            await sendCheckoutReminder(reservation.guest, reservation, reservation.room);
+            await prisma.reservation.update({ where: { id: reservation.id }, data: { reminderCheckedOutSentAt: now } });
+          } catch (e) { /* fire-and-forget */ }
+        })
+      );
+
+      if (checkinDue.length > 0 || checkoutDue.length > 0) {
+        console.log(`[cron] Reminders: ${checkinDue.length} check-in, ${checkoutDue.length} check-out`);
+      }
+    } catch (err) {
+      console.error('[cron] Error sending reservation reminders:', err.message);
+    }
+  });
+  console.log('[cron] Reservation reminder scheduler started (runs hourly)');
 });
 
 // Graceful shutdown — drain connections before exiting
