@@ -107,25 +107,25 @@ export default function Layout() {
         </nav>
 
         {/* User */}
-        <div className="p-4 border-t border-surface-200">
+        <div className="p-4 border-t border-surface-200 dark:border-surface-700">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-surface-100 flex items-center justify-center text-sm font-semibold text-surface-600 flex-shrink-0">
+            <div className="w-9 h-9 rounded-full bg-surface-100 dark:bg-surface-700 flex items-center justify-center text-sm font-semibold text-surface-600 dark:text-surface-300 flex-shrink-0">
               {user?.name?.charAt(0)?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-surface-900 truncate">{user?.name}</p>
-              <p className="text-xs text-surface-500 capitalize">{user?.role?.toLowerCase() || 'Usuario'}</p>
+              <p className="text-sm font-medium text-surface-900 dark:text-surface-100 truncate">{user?.name}</p>
+              <p className="text-xs text-surface-500 dark:text-surface-400 capitalize">{user?.role?.toLowerCase() || 'Usuario'}</p>
             </div>
             <button
               onClick={toggle}
-              className="p-2 rounded-xl hover:bg-surface-100 text-surface-500 dark:text-surface-400 transition-colors"
+              className="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400 transition-colors"
               aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
             >
               {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
             <button
               onClick={handleLogout}
-              className="p-2 rounded-xl hover:bg-red-50 text-surface-500 hover:text-red-600 transition-colors"
+              className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/30 text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
               aria-label="Cerrar sesión"
             >
               <LogOut className="w-4 h-4" />
