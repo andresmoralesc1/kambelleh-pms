@@ -24,8 +24,8 @@ const BookingPage     = lazy(() => import('./pages/BookingPage'));
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30000, retry: 1 } } });
 
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="animate-spin h-8 w-8 border-4 border-primary-500 border-t-transparent rounded-full" />
+  <div className="flex items-center justify-center min-h-screen bg-surface-50 dark:bg-surface-900">
+    <div className="animate-spin h-8 w-8 border-4 border-primary-500 dark:border-primary-400 border-t-transparent dark:border-t-transparent rounded-full" />
   </div>
 );
 
