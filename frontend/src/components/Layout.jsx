@@ -137,10 +137,10 @@ export default function Layout() {
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile header */}
-        <div className="lg:hidden flex items-center gap-3 p-4 bg-white border-b border-surface-200">
+        <div className="lg:hidden flex items-center gap-3 p-4 bg-white dark:bg-surface-800 border-b border-surface-200 dark:border-surface-700">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-xl hover:bg-surface-100 text-surface-600"
+            className="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400"
             aria-label="Abrir menú de navegación"
           >
             <Menu className="w-5 h-5" />
@@ -149,7 +149,7 @@ export default function Layout() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
               <Bed className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-surface-900">Kambelleh</span>
+            <span className="font-bold text-surface-900 dark:text-surface-100">Kambelleh</span>
           </div>
         </div>
 

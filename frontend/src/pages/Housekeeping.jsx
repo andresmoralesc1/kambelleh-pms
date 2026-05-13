@@ -335,7 +335,7 @@ function CleaningHistorySection({ roomId, roomNumber }) {
     return (
       <div className="space-y-2">
         {[...Array(2)].map((_, i) => (
-          <div key={i} className="h-12 bg-surface-200 rounded-lg animate-pulse" />
+          <div key={i} className="h-12 bg-surface-200 dark:bg-surface-700 rounded-lg animate-pulse" />
         ))}
       </div>
     );
@@ -343,7 +343,7 @@ function CleaningHistorySection({ roomId, roomNumber }) {
 
   if (logs.length === 0) {
     return (
-      <p className="text-xs text-surface-400 text-center py-2">Sin registros aún</p>
+      <p className="text-xs text-surface-400 dark:text-surface-500 text-center py-2">Sin registros aún</p>
     );
   }
 
@@ -351,19 +351,19 @@ function CleaningHistorySection({ roomId, roomNumber }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-semibold text-surface-500 mb-2">Últimas limpiezas</p>
+      <p className="text-xs font-semibold text-surface-500 dark:text-surface-400 mb-2">Últimas limpiezas</p>
       {recentLogs.map(log => {
         const config = cleaningStatusConfig[log.status] || cleaningStatusConfig.CLEANED;
         return (
-          <div key={log.id} className="flex items-center gap-2 p-2 rounded-lg bg-white border border-surface-200">
+          <div key={log.id} className="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700">
             <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${config.bg}`}>
               <config.icon className={`w-3.5 h-3.5 ${config.text}`} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-surface-700 truncate">
+              <p className="text-xs font-medium text-surface-700 dark:text-surface-300 truncate">
                 {log.staff ? log.staff.name : log.performedBy}
               </p>
-              <p className="text-xs text-surface-400">{formatDateShort(log.createdAt)}</p>
+              <p className="text-xs text-surface-400 dark:text-surface-500">{formatDateShort(log.createdAt)}</p>
             </div>
             <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${config.bg} ${config.text}`}>
               {config.label}
