@@ -70,7 +70,7 @@ export default function Layout() {
               <Bed className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-surface-900 text-lg leading-tight">Kambelleh</h1>
+              <h1 className="font-bold text-surface-900 dark:text-white text-lg leading-tight">Kambelleh</h1>
               <p className="text-xs text-surface-500">PMS</p>
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function Layout() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
               <Bed className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-surface-900 dark:text-surface-100">Kambelleh</span>
+            <span className="font-bold text-surface-900 dark:text-white">Kambelleh</span>
           </div>
         </div>
 
