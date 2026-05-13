@@ -9,11 +9,11 @@ import { roomColor } from './Dashboard';
 import { useQueryClient } from '@tanstack/react-query';
 
 const STATUS_COLORS = {
-  PENDING: 'bg-amber-100 text-amber-700',
-  CONFIRMED: 'bg-blue-100 text-blue-700',
-  CHECKED_IN: 'bg-emerald-100 text-emerald-700',
-  CHECKED_OUT: 'bg-surface-200 text-surface-600',
-  CANCELLED: 'bg-red-100 text-red-600',
+  PENDING: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300',
+  CONFIRMED: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300',
+  CHECKED_IN: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300',
+  CHECKED_OUT: 'bg-surface-200 dark:bg-surface-700 text-surface-600 dark:text-surface-400',
+  CANCELLED: 'bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-300',
 };
 
 const SOURCE_BADGE = {
@@ -55,21 +55,21 @@ function OverflowPopover({ reservations, day, onClose }) {
   return (
     <div
       ref={popoverRef}
-      className="absolute z-50 mt-1 w-72 bg-white rounded-xl border border-surface-200 shadow-xl overflow-hidden"
+      className="absolute z-50 mt-1 w-72 bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 shadow-xl overflow-hidden"
       style={{ top: '100%', left: 0 }}
     >
       {/* Popover header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-surface-100 bg-surface-50">
-        <span className="text-xs font-semibold text-surface-700">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-surface-100 dark:border-surface-700 bg-surface-50 dark:bg-surface-900">
+        <span className="text-xs font-semibold text-surface-700 dark:text-surface-300">
           {format(day, "d 'de' MMMM", { locale: es })} — {reservations.length} reservas
         </span>
-        <button onClick={onClose} className="p-0.5 rounded hover:bg-surface-200 text-surface-400">
+        <button onClick={onClose} className="p-0.5 rounded hover:bg-surface-200 dark:hover:bg-surface-700 text-surface-400 dark:text-surface-500">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
 
       {/* Reservation list */}
-      <div className="max-h-64 overflow-y-auto divide-y divide-surface-100">
+      <div className="max-h-64 overflow-y-auto divide-y divide-surface-100 dark:divide-surface-700">
         {reservations.map((r) => {
           const isCheckIn = isSameDay(new Date(r.checkIn), day);
           const isCheckOut = isSameDay(new Date(r.checkOut), day);
@@ -77,7 +77,7 @@ function OverflowPopover({ reservations, day, onClose }) {
             <Link
               key={r.id}
               to={`/reservations?id=${r.id}`}
-              className="flex items-start gap-2.5 px-3 py-2.5 hover:bg-surface-50 transition-colors no-underline"
+              className="flex items-start gap-2.5 px-3 py-2.5 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors no-underline"
               onClick={onClose}
             >
               {/* Room color indicator */}
@@ -86,7 +86,7 @@ function OverflowPopover({ reservations, day, onClose }) {
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold text-surface-800 truncate">
+                  <span className="text-xs font-semibold text-surface-800 dark:text-surface-200 truncate">
                     {r.guest?.name}
                   </span>
                   {r.guest?.vip && <Star className="w-3 h-3 text-amber-400 flex-shrink-0 fill-amber-400" />}
@@ -94,15 +94,15 @@ function OverflowPopover({ reservations, day, onClose }) {
                 </div>
 
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <Bed className="w-3 h-3 text-surface-400" />
-                  <span className="text-xs text-surface-600">
+                  <Bed className="w-3 h-3 text-surface-400 dark:text-surface-500" />
+                  <span className="text-xs text-surface-600 dark:text-surface-400">
                     Hab. {r.room?.number} {r.room?.name && `— ${r.room.name}`}
                   </span>
                 </div>
 
                 {/* Check-in/out label */}
                 {(isCheckIn || isCheckOut) && (
-                  <div className={`mt-0.5 text-[10px] font-medium ${isCheckIn ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  <div className={`mt-0.5 text-[10px] font-medium ${isCheckIn ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
                     {isCheckIn ? '→ Entrada' : '← Salida'} · {format(new Date(isCheckIn ? r.checkIn : r.checkOut), 'HH:mm')}
                   </div>
                 )}
@@ -112,11 +112,11 @@ function OverflowPopover({ reservations, day, onClose }) {
               <div className="flex flex-col items-end gap-1 flex-shrink-0">
                 <StatusBadge status={r.status} />
                 {r.source && r.source !== 'DIRECT' && (
-                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${SOURCE_BADGE[r.source] || 'bg-surface-100 text-surface-600'}`}>
+                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${SOURCE_BADGE[r.source] || 'bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400'}`}>
                     {r.source}
                   </span>
                 )}
-                <ExternalLink className="w-3 h-3 text-surface-300 mt-0.5" />
+                <ExternalLink className="w-3 h-3 text-surface-300 dark:text-surface-600 mt-0.5" />
               </div>
             </Link>
           );
@@ -216,28 +216,28 @@ export default function Calendar() {
   const hasActiveFilters = roomFilter || statusFilter;
 
   return (
-    <div className="p-6 space-y-4" onClick={() => setOverflowState(null)}>
+    <div className="p-6 space-y-4 bg-surface-50 dark:bg-surface-900 min-h-screen" onClick={() => setOverflowState(null)}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900">Calendario</h1>
-          <p className="text-surface-500 text-sm mt-0.5 capitalize">{format(currentMonth, 'MMMM yyyy', { locale: es })}</p>
+          <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-100">Calendario</h1>
+          <p className="text-surface-500 dark:text-surface-400 text-sm mt-0.5 capitalize">{format(currentMonth, 'MMMM yyyy', { locale: es })}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-            className="p-2 rounded-xl hover:bg-surface-100 text-surface-500 transition-colors"
+            className="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 text-surface-500 dark:text-surface-400 transition-colors"
             aria-label="Mes anterior"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button onClick={() => setCurrentMonth(new Date())}
-            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-200 hover:bg-surface-300 text-surface-600 transition-colors"
+            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-surface-200 dark:bg-surface-700 hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-600 dark:text-surface-300 transition-colors"
             aria-label="Ir a hoy"
           >
             Hoy
           </button>
           <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-            className="p-2 rounded-xl hover:bg-surface-100 text-surface-500 transition-colors"
+            className="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-800 text-surface-500 dark:text-surface-400 transition-colors"
             aria-label="Mes siguiente"
           >
             <ChevronRight className="w-5 h-5" />
@@ -255,14 +255,14 @@ export default function Calendar() {
       <div className="flex items-center gap-3 flex-wrap">
         {/* Room filter */}
         <div className="flex items-center gap-2">
-          <label htmlFor="room-filter" className="text-xs font-medium text-surface-600 whitespace-nowrap">
+          <label htmlFor="room-filter" className="text-xs font-medium text-surface-600 dark:text-surface-400 whitespace-nowrap">
             Habitación:
           </label>
           <select
             id="room-filter"
             value={roomFilter}
             onChange={(e) => setRoomFilter(e.target.value)}
-            className="text-sm border border-surface-200 rounded-lg px-2.5 py-1.5 bg-white text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="text-sm border border-surface-200 dark:border-surface-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-surface-800 text-surface-700 dark:text-surface-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="">Todas las habitaciones</option>
             {rooms.map(r => (
@@ -275,14 +275,14 @@ export default function Calendar() {
 
         {/* Status filter */}
         <div className="flex items-center gap-2">
-          <label htmlFor="status-filter" className="text-xs font-medium text-surface-600 whitespace-nowrap">
+          <label htmlFor="status-filter" className="text-xs font-medium text-surface-600 dark:text-surface-400 whitespace-nowrap">
             Estado:
           </label>
           <select
             id="status-filter"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-sm border border-surface-200 rounded-lg px-2.5 py-1.5 bg-white text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="text-sm border border-surface-200 dark:border-surface-700 rounded-lg px-2.5 py-1.5 bg-white dark:bg-surface-800 text-surface-700 dark:text-surface-300 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="">Todos los estados</option>
             <option value="PENDING">Pendiente</option>
@@ -297,7 +297,7 @@ export default function Calendar() {
         {hasActiveFilters && (
           <button
             onClick={() => { setRoomFilter(''); setStatusFilter(''); }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
             <X className="w-3.5 h-3.5" /> Limpiar filtros
           </button>
@@ -305,14 +305,14 @@ export default function Calendar() {
 
         {/* Active filter count */}
         {hasActiveFilters && (
-          <span className="text-xs text-surface-500">
+          <span className="text-xs text-surface-500 dark:text-surface-400">
             ({reservations.length} reserva{reservations.length !== 1 ? 's' : ''} encontrada{reservations.length !== 1 ? 's' : ''})
           </span>
         )}
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-xs text-surface-600" role="list" aria-label="Leyenda del calendario">
+      <div className="flex items-center gap-4 text-xs text-surface-600 dark:text-surface-400" role="list" aria-label="Leyenda del calendario">
         <div className="flex items-center gap-1.5" role="listitem">
           <div className="w-3 h-3 rounded-sm bg-emerald-500" aria-hidden="true" /> Entrada
         </div>
@@ -329,13 +329,13 @@ export default function Calendar() {
         <CalendarSkeleton />
       ) : (
         <div
-          className="bg-white rounded-2xl border border-surface-200 overflow-hidden relative"
+          className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 overflow-hidden relative"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Day headers */}
-          <div className="grid grid-cols-7 border-b border-surface-200" role="row">
+          <div className="grid grid-cols-7 border-b border-surface-200 dark:border-surface-700" role="row">
             {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-              <div key={d} className="py-2.5 text-center text-xs font-semibold text-surface-500 uppercase tracking-wide" role="columnheader">
+              <div key={d} className="py-2.5 text-center text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wide" role="columnheader">
                 {d}
               </div>
             ))}
@@ -356,13 +356,13 @@ export default function Calendar() {
 
               return (
                 <div key={idx}
-                  className={`min-h-[110px] border-b border-r border-surface-100 p-1.5 ${!inMonth ? 'bg-surface-50' : ''}`}
+                  className={`min-h-[110px] border-b border-r border-surface-100 dark:border-surface-700 p-1.5 ${!inMonth ? 'bg-surface-50 dark:bg-surface-900' : ''}`}
                   role="gridcell"
                   aria-label={format(day, "EEEE, d 'de' MMMM", { locale: es })}
                 >
                   {/* Day number */}
                   <div className={`w-7 h-7 flex items-center justify-center rounded-full text-xs font-medium mb-1 ${
-                    isCurrentDay ? 'bg-primary-600 text-white' : inMonth ? 'text-surface-700' : 'text-surface-300'
+                    isCurrentDay ? 'bg-primary-600 text-white' : inMonth ? 'text-surface-700 dark:text-surface-300' : 'text-surface-300 dark:text-surface-600'
                   }`}>
                     {format(day, 'd')}
                   </div>
@@ -379,8 +379,8 @@ export default function Calendar() {
                           key={r.id}
                           to={`/reservations?id=${r.id}`}
                           className={`group relative flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded truncate text-white no-underline transition-opacity hover:opacity-80 ${
-                            isCancelled ? 'bg-surface-300 line-through' :
-                            isCheckIn ? 'bg-emerald-500' : isCheckOut ? 'bg-amber-500' : 'bg-primary-500'
+                            isCancelled ? 'bg-surface-400 dark:bg-surface-600 line-through' :
+                            isCheckIn ? 'bg-emerald-500' : isCheckOut ? 'bg-amber-500' : 'bg-primary-500 dark:bg-primary-600'
                           }`}
                           title={`${r.guest?.name} — Hab. ${r.room?.number}${isCheckIn ? ' · Entrada' : ''}${isCheckOut ? ' · Salida' : ''}`}
                         >
@@ -405,7 +405,7 @@ export default function Calendar() {
                     {overflowCount > 0 && (
                       <button
                         onClick={(e) => handleOverflowClick(e, day, dayReservations)}
-                        className={`w-full flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-surface-100 text-surface-600 hover:bg-surface-200 transition-colors ${
+                        className={`w-full flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors ${
                           isOverflowOpen ? 'ring-2 ring-primary-400' : ''
                         }`}
                         aria-label={`${overflowCount} reserva${overflowCount !== 1 ? 's' : ''} más`}
@@ -419,7 +419,7 @@ export default function Calendar() {
                     {/* Blocked dates */}
                     {dayBlocked.map((b) => (
                       <div key={b.id}
-                        className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-surface-200 text-surface-600 truncate"
+                        className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-surface-200 dark:bg-surface-700 text-surface-600 dark:text-surface-400 truncate"
                         title={`Hab. ${b.room?.number} · Bloqueado`}
                       >
                         <div className={`w-1 h-3 rounded-full flex-shrink-0 ${roomColor(b.room?.id)}`} />
@@ -444,7 +444,7 @@ export default function Calendar() {
           {/* Empty overlay */}
           {reservations.length === 0 && blockedDates.length === 0 && !isLoading && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-white/80 rounded-xl px-4 py-2 text-sm text-surface-500">
+              <div className="bg-white/80 dark:bg-surface-800/80 rounded-xl px-4 py-2 text-sm text-surface-500 dark:text-surface-400">
                 Sin reservas{hasActiveFilters ? ' con los filtros activos' : ' este mes'}
               </div>
             </div>
