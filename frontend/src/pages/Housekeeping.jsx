@@ -24,13 +24,13 @@ function CleaningHistoryModal({ roomId, roomNumber, onClose }) {
   const logs = data?.logs || [];
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="cleaning-history-title">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
-        <div className="p-5 border-b border-surface-200 flex items-center justify-between">
-          <h2 id="cleaning-history-title" className="text-lg font-bold text-surface-900">
+    <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="cleaning-history-title">
+      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col">
+        <div className="p-5 border-b border-surface-200 dark:border-surface-700 flex items-center justify-between">
+          <h2 id="cleaning-history-title" className="text-lg font-bold text-surface-900 dark:text-surface-100">
             Historial de limpieza — Hab. #{roomNumber}
           </h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-500" aria-label="Cerrar">
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400" aria-label="Cerrar">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
@@ -38,20 +38,20 @@ function CleaningHistoryModal({ roomId, roomNumber, onClose }) {
           {isLoading ? (
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-16 bg-surface-100 rounded-xl animate-pulse" />
+                <div key={i} className="h-16 bg-surface-100 dark:bg-surface-700 rounded-xl animate-pulse" />
               ))}
             </div>
           ) : logs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-10 text-center">
-              <SprayCan className="w-10 h-10 text-surface-300 mb-3" />
-              <p className="text-surface-500 text-sm">Sin registros de limpieza aún</p>
+              <SprayCan className="w-10 h-10 text-surface-300 dark:text-surface-600 mb-3" />
+              <p className="text-surface-500 dark:text-surface-400 text-sm">Sin registros de limpieza aún</p>
             </div>
           ) : (
             <div className="space-y-3">
               {logs.map(log => {
                 const config = cleaningStatusConfig[log.status] || cleaningStatusConfig.CLEANED;
                 return (
-                  <div key={log.id} className="flex items-start gap-3 p-3 rounded-xl bg-surface-50 border border-surface-200">
+                  <div key={log.id} className="flex items-start gap-3 p-3 rounded-xl bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${config.bg}`}>
                       <config.icon className={`w-4 h-4 ${config.text}`} />
                     </div>
@@ -60,9 +60,9 @@ function CleaningHistoryModal({ roomId, roomNumber, onClose }) {
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${config.bg} ${config.text}`}>
                           {config.label}
                         </span>
-                        <span className="text-xs text-surface-400">{formatDateShort(log.createdAt)}</span>
+                        <span className="text-xs text-surface-400 dark:text-surface-500">{formatDateShort(log.createdAt)}</span>
                       </div>
-                      <p className="text-sm text-surface-700 mt-1">
+                      <p className="text-sm text-surface-700 dark:text-surface-300 mt-1">
                         {log.staff ? (
                           <span className="font-medium">{log.staff.name}</span>
                         ) : (
@@ -70,7 +70,7 @@ function CleaningHistoryModal({ roomId, roomNumber, onClose }) {
                         )}
                       </p>
                       {log.notes && (
-                        <p className="text-xs text-surface-500 mt-1 truncate">{log.notes}</p>
+                        <p className="text-xs text-surface-500 dark:text-surface-400 mt-1 truncate">{log.notes}</p>
                       )}
                     </div>
                   </div>
@@ -151,12 +151,12 @@ export default function Housekeeping() {
   const handleCancel = () => { confirmState?.resolve?.(false); setConfirmState(null); };
 
   return (
-    <div className="p-6 space-y-5" role="main">
+    <div className="p-6 space-y-5 bg-surface-50 dark:bg-surface-900 min-h-screen" role="main">
       {/* Header */}
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900">Limpieza</h1>
-          <p className="text-surface-500 text-sm mt-0.5">
+          <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-100">Limpieza</h1>
+          <p className="text-surface-500 dark:text-surface-400 text-sm mt-0.5">
             {rooms.filter(r => r.cleaningStatus === 'NEEDS_CLEANING').length} necesitan limpieza ·{' '}
             {rooms.filter(r => r.cleaningStatus === 'IN_CLEANING').length} en proceso
           </p>
@@ -169,8 +169,8 @@ export default function Housekeeping() {
           <button key={opt.key} onClick={() => setFilter(opt.key)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               filter === opt.key
-                ? 'bg-surface-800 text-white'
-                : 'bg-white border border-surface-200 text-surface-600 hover:bg-surface-50'
+                ? 'bg-surface-800 dark:bg-primary-600 text-white dark:text-white'
+                : 'bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-700'
             }`}
             aria-pressed={filter === opt.key}>
             {opt.label}
@@ -182,16 +182,16 @@ export default function Housekeeping() {
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="h-40 bg-surface-200 rounded-2xl animate-pulse" />
+            <div key={i} className="h-40 bg-white dark:bg-surface-800 rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-surface-100 flex items-center justify-center mb-4">
-            <SprayCan className="w-7 h-7 text-surface-500" />
+          <div className="w-14 h-14 rounded-2xl bg-surface-100 dark:bg-surface-800 flex items-center justify-center mb-4">
+            <SprayCan className="w-7 h-7 text-surface-500 dark:text-surface-400" />
           </div>
-          <h3 className="font-semibold text-surface-700 mb-1">Sin habitaciones</h3>
-          <p className="text-sm text-surface-500">No hay habitaciones con este estado de limpieza</p>
+          <h3 className="font-semibold text-surface-700 dark:text-surface-300 mb-1">Sin habitaciones</h3>
+          <p className="text-sm text-surface-500 dark:text-surface-400">No hay habitaciones con este estado de limpieza</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -199,17 +199,17 @@ export default function Housekeeping() {
             const config = cleaningStatusConfig[room.cleaningStatus] || cleaningStatusConfig.CLEANED;
             const isExpanded = expandedRoom === room.id;
             return (
-              <div key={room.id} className="bg-white rounded-2xl border border-surface-200 overflow-hidden hover:shadow-md transition-shadow">
+              <div key={room.id} className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 overflow-hidden hover:shadow-md transition-shadow">
                 {/* Card header */}
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${config.bg.replace('100', '50')}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${config.bg.replace('100', '50').replace('bg-emerald-100', 'bg-emerald-50 dark:bg-emerald-900/30').replace('bg-red-100', 'bg-red-50 dark:bg-red-900/30').replace('bg-yellow-100', 'bg-yellow-50 dark:bg-yellow-900/30').replace('bg-gray-100', 'bg-gray-100 dark:bg-gray-900/30')}`}>
                         <config.icon className={`w-5 h-5 ${config.text.replace('700', '600')}`} />
                       </div>
                       <div>
-                        <p className="font-bold text-surface-900">#{room.number}</p>
-                        <p className="text-xs text-surface-500">{room.name}</p>
+                        <p className="font-bold text-surface-900 dark:text-surface-100">#{room.number}</p>
+                        <p className="text-xs text-surface-500 dark:text-surface-400">{room.name}</p>
                       </div>
                     </div>
                     <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium ${config.bg} ${config.text}`}>
@@ -223,7 +223,7 @@ export default function Housekeeping() {
                     <button
                       onClick={() => handleMarkClean(room)}
                       disabled={pendingRoomId === room.id}
-                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       aria-label={`Marcar habitación ${room.number} como limpia`}
                       aria-disabled={pendingRoomId === room.id}>
                       {pendingRoomId === room.id ? (
@@ -237,8 +237,8 @@ export default function Housekeeping() {
                       disabled={pendingRoomId === room.id}
                       className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                         room.cleaningStatus === 'NEEDS_CLEANING'
-                          ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
-                          : 'bg-red-50 hover:bg-red-100 text-red-700'
+                          ? 'bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300'
+                          : 'bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300'
                       }`}
                       aria-label={room.cleaningStatus === 'NEEDS_CLEANING' ? `Marcar habitación ${room.number} como limpia` : `Marcar habitación ${room.number} como necesita limpieza`}
                       aria-disabled={pendingRoomId === room.id}>
@@ -254,7 +254,7 @@ export default function Housekeeping() {
 
                   <button
                     onClick={() => setExpandedRoom(isExpanded ? null : room.id)}
-                    className="w-full mt-2 flex items-center justify-center gap-1 py-1 text-xs text-surface-500 hover:text-surface-700 transition-colors"
+                    className="w-full mt-2 flex items-center justify-center gap-1 py-1 text-xs text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 transition-colors"
                     aria-expanded={isExpanded}>
                     {isExpanded ? 'Ocultar historial' : 'Ver historial'}
                     {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -263,7 +263,7 @@ export default function Housekeeping() {
 
                 {/* Expanded cleaning history */}
                 {isExpanded && (
-                  <div className="border-t border-surface-100 bg-surface-50 p-4 max-h-48 overflow-y-auto">
+                  <div className="border-t border-surface-100 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 p-4 max-h-48 overflow-y-auto">
                     <CleaningHistorySection roomId={room.id} roomNumber={room.number} />
                   </div>
                 )}
@@ -275,27 +275,27 @@ export default function Housekeeping() {
 
       {/* Confirm dialog */}
       {confirmState && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
+          <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                <SprayCan className="w-5 h-5 text-primary-600" />
+              <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                <SprayCan className="w-5 h-5 text-primary-600 dark:text-primary-300" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-surface-900">{confirmState.title}</h2>
+                <h2 className="text-lg font-bold text-surface-900 dark:text-surface-100">{confirmState.title}</h2>
               </div>
             </div>
-            <p className="text-sm text-surface-600 mb-4">{confirmState.message}</p>
+            <p className="text-sm text-surface-600 dark:text-surface-400 mb-4">{confirmState.message}</p>
 
             {/* Staff selector for cleaning log */}
             {confirmState.title === 'Registrar limpieza' && (
               <div className="space-y-3 mb-4">
                 <div>
-                  <label className="block text-xs font-medium text-surface-600 mb-1">Personal de limpieza</label>
+                  <label className="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Personal de limpieza</label>
                   <select
                     value={selectedStaffId}
                     onChange={(e) => setSelectedStaffId(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-surface-200 text-sm text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 rounded-xl border border-surface-200 dark:border-surface-600 text-sm text-surface-700 dark:text-surface-300 bg-white dark:bg-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <option value="">-- Sin asignar --</option>
                     {users.map(user => (
@@ -304,20 +304,20 @@ export default function Housekeeping() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-surface-600 mb-1">Notas (opcional)</label>
+                  <label className="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Notas (opcional)</label>
                   <input
                     type="text"
                     value={cleaningNotes}
                     onChange={(e) => setCleaningNotes(e.target.value)}
                     placeholder="Ej: Limpieza completa"
-                    className="w-full px-3 py-2 rounded-xl border border-surface-200 text-sm text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 rounded-xl border border-surface-200 dark:border-surface-600 text-sm text-surface-700 dark:text-surface-300 bg-white dark:bg-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
               </div>
             )}
 
             <div className="flex gap-3 justify-end">
-              <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 text-surface-700 text-sm font-medium hover:bg-surface-50 transition-colors">Cancelar</button>
+              <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-400 text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">Cancelar</button>
               <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors">{confirmState.confirmLabel}</button>
             </div>
           </div>
