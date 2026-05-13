@@ -386,7 +386,7 @@ export default function Guests() {
   const handleCancel = () => { confirmState?.resolve?.(false); setConfirmState(null); };
 
   return (
-    <div className="p-6 space-y-5" role="main">
+    <div className="p-6 space-y-5 bg-surface-50 dark:bg-surface-900 min-h-screen" role="main">
       {/* Header */}
       <header className="flex items-center justify-between">
         <div>
