@@ -18,9 +18,19 @@ const router = express.Router();
 // Stripe calls this with raw body - route already configured in index.js
 async function stripeWebhook(req, res) {
   const client = getStripe();
+  // Fail fast in production if Stripe is not configured
   if (!client) {
-    console.error('Stripe no configurado - webhook omitido');
+    if (process.env.NODE_ENV === 'production') {
+      console.error('Stripe no configurado en producción - no se pueden procesar webhooks');
+      return res.status(500).send('Payment provider not configured');
+    }
+    console.warn('Stripe no configurado - webhook omitido (modo desarrollo)');
     return res.status(500).send('Stripe no está configurado');
+  }
+
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('STRIPE_WEBHOOK_SECRET no está configurado');
+    return res.status(500).send('Webhook secret not configured');
   }
 
   const sig = req.headers['stripe-signature'];

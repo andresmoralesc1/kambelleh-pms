@@ -11,6 +11,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import prisma from './config/database.js';
 
 // Load env
 dotenv.config();
@@ -87,9 +88,28 @@ io.on('connection', (socket) => {
 // Stripe webhook needs raw body — must be before express.json()
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      fontSrc: ["'self'"],
+      connectSrc: ["'self'", process.env.FRONTEND_URL || 'http://localhost:5173'],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
+// CORS: allow multiple origins (comma-separated in FRONTEND_URL env var)
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: allowedOrigins.length > 1 ? allowedOrigins : allowedOrigins[0],
   credentials: true,
 }));
 app.use(morgan('dev'));

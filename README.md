@@ -211,6 +211,51 @@ POST   /api/channels/airbnb/sync
 
 ---
 
+## 🔒 Seguridad
+
+- **JWT con refresh tokens** — Access token corto (15min), refresh token en httpOnly cookie (rotación DB)
+- **Rate limiting** — 100 requests/15min por IP en `/api`, 10 attempts/15min en auth
+- **Helmet** — CSP, XSS, clickjacking, sniffing headers
+- **CORS** — Orígenes múltiples (comma-separated en `FRONTEND_URL`)
+- **Password hashing** — bcryptjs con salt rounds 12 + timing attack mitigation
+- **SQL injection** — Prisma ORM parameterized queries; raw SQL solo con tagged template literals
+- **Stripe webhook** — Signature verification + idempotency con `SELECT FOR UPDATE`
+- **OAuth CSRF** — State persisted en DB con TTL 10min
+- **CRON_SECRET** — Header `X_CRON_SECRET` para endpoint de recordatorios
+
+---
+
+## 🚀 Checklist de producción
+
+```bash
+# 1. Variables obligatorias — editar .env
+JWT_SECRET=           # Generar: openssl rand -hex 32
+JWT_REFRESH_SECRET=    # Generar: openssl rand -hex 32
+CRON_SECRET=          # Generar: openssl rand -hex 32
+DATABASE_URL=          # PostgreSQL (Railway/Render/Neon)
+STRIPE_SECRET_KEY=     # sk_live_...
+STRIPE_WEBHOOK_SECRET= # whsec_...
+RESEND_API_KEY=        # re_...
+
+# 2. Si múltiples orígenes (staging + production):
+FRONTEND_URL=https://tudominio.com,https://staging.tudominio.com
+
+# 3. Migrar DB ( Railway/Render POSTGRESQL_URL)
+npx prisma migrate deploy
+
+# 4. Seed solo la primera vez
+node seed.js
+
+# 5. Configurar cron externo ( Railway cron / cron-job.org )
+GET https://tu-api.com/api/cron/reservation-reminders
+Header: X_CRON_SECRET: tu-cron-secret
+
+# 6. Verificar health
+curl https://tu-api.com/api/health
+```
+
+---
+
 ## 📊 Modelo de datos
 
 ```
@@ -228,19 +273,8 @@ Room
 
 ChannelConnection (Airbnb / Booking / Expedia)
 Setting (key-value property config)
+OAuthState (CSRF token TTL)
 ```
-
----
-
-## 🔒 Seguridad
-
-- **JWT con refresh tokens** — Access token corto (15min), refresh token en httpOnly cookie
-- **Rate limiting** — 100 requests/15min por IP en todos los endpoints `/api`
-- **Helmet** — Headers de seguridad (XSS, clickjacking, sniffing)
-- **CORS** — Solo `FRONTEND_URL` puede hacer requests
-- **Password hashing** — bcryptjs con salt rounds 12
-- **SQL injection** — Prisma ORM con query building (no raw strings)
-- **Stripe webhook** — Signature verification con `stripe-webhook-secret`
 
 ---
 
