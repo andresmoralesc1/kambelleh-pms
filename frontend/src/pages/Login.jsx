@@ -6,11 +6,14 @@ import { LogIn, Eye, EyeOff } from 'lucide-react';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(expired ? 'La sesión ha expirado. Inicia sesión nuevamente.' : '');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Session expired redirect from 401 interceptor
+  const expired = new URLSearchParams(window.location.search).get('expired') === '1';
 
   const handleSubmit = async (e) => {
     e.preventDefault();

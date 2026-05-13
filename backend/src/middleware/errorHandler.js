@@ -4,21 +4,21 @@ export function errorHandler(err, req, res, _next) {
   // Zod validation errors
   if (err.name === 'ZodError') {
     return res.status(400).json({
-      error: 'Validation error',
+      error: 'Error de validación',
       details: err.errors.map(e => ({ field: e.path.join('.'), message: e.message })),
     });
   }
 
   // Prisma errors
   if (err.code === 'P2002') {
-    return res.status(409).json({ error: 'Duplicate entry', field: err.meta?.target });
+    return res.status(409).json({ error: 'Este valor ya existe', field: err.meta?.target });
   }
   if (err.code === 'P2025') {
-    return res.status(404).json({ error: 'Resource not found' });
+    return res.status(404).json({ error: 'Recurso no encontrado' });
   }
 
   // Default
   res.status(err.status || 500).json({
-    error: err.message || 'Internal server error',
+    error: err.message || 'Error interno del servidor',
   });
-}
+};

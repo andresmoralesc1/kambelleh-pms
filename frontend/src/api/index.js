@@ -5,6 +5,20 @@ const api = axios.create({
   withCredentials: true,
 });
 
+// Response interceptor: handle 401 (session expired) and other errors globally
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Navigate to login with session expired message
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login?expired=1';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth
 export const login = (data) => api.post('/auth/login', data);
 export const register = (data) => api.post('/auth/register', data);
