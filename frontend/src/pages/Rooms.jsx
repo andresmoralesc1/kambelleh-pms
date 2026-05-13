@@ -2,9 +2,12 @@ import { useState } from 'react';
 import { DoorOpen, Plus, Pencil, Trash2, Bed, Wifi, Wind, Coffee, Tv, Search, Download } from 'lucide-react';
 import { useRooms, useCreateRoom, useDeleteRoom } from '../hooks/useQueries';
 import { useExportRooms } from '../hooks/useExport';
+import { useSocket } from '../context/SocketContext';
 import { formatCurrencyCompact } from '../utils/currency';
 import { useToast } from '../components/ToastProvider';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 const amenityIcons = { WiFi: Wifi, 'A/C': Wind, Desayuno: Coffee, TV: Tv };
 
@@ -146,6 +149,18 @@ export default function Rooms() {
   const deleteRoom = useDeleteRoom();
   const toast = useToast();
   const exportRooms = useExportRooms();
+  const { socket } = useSocket();
+  const queryClient = useQueryClient();
+
+  // Listen for room:updated to refetch room data in real time
+  useEffect(() => {
+    if (!socket) return;
+    const handleRoomUpdated = () => {
+      queryClient.invalidateQueries({ queryKey: ['rooms'] });
+    };
+    socket.on('room:updated', handleRoomUpdated);
+    return () => socket.off('room:updated', handleRoomUpdated);
+  }, [socket, queryClient]);
 
   const rooms = data?.rooms || [];
   const filtered = filter === 'ALL' ? rooms : rooms.filter(r => r.status === filter);

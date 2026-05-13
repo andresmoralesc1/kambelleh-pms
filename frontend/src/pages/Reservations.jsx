@@ -5,8 +5,11 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Eye, X, CheckCircle, XCircle, Clock, AlertCircle, CalendarDays, Download, StickyNote, Trash2 } from 'lucide-react';
 import { useReservations, useUpdateReservationStatus, useNotes, useCreateNote, useDeleteNote } from '../hooks/useQueries';
 import { useExportReservations } from '../hooks/useExport';
+import { useSocket } from '../context/SocketContext';
 import { formatCurrencyCompact } from '../utils/currency';
 import { useToast } from '../components/ToastProvider';
+import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 const statusConfig = {
   PENDING: { label: 'Pendiente', bg: 'bg-amber-100', text: 'text-amber-700', icon: Clock },
@@ -351,6 +354,22 @@ export default function Reservations() {
   const LIMIT = 20;
   const { data, isLoading } = useReservations({ page, limit: LIMIT });
   const exportReservations = useExportReservations();
+  const { socket } = useSocket();
+  const queryClient = useQueryClient();
+
+  // Listen for reservation events to refetch in real time
+  useEffect(() => {
+    if (!socket) return;
+    const handleUpdate = () => {
+      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+    };
+    socket.on('reservation:created', handleUpdate);
+    socket.on('reservation:updated', handleUpdate);
+    return () => {
+      socket.off('reservation:created', handleUpdate);
+      socket.off('reservation:updated', handleUpdate);
+    };
+  }, [socket, queryClient]);
 
   const reservations = data?.reservations || [];
   const total = data?.total ?? 0;

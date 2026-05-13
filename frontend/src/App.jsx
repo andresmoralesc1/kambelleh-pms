@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './components/ToastProvider';
+import { SocketProvider } from './context/SocketContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -46,57 +47,59 @@ export default function App() {
     <ThemeProvider>
       <ToastProvider>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-                  <Route index element={<Navigate to="/dashboard" />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route
-                    path="analytics"
-                    element={<Suspense fallback={<PageLoader />}><Analytics /></Suspense>}
-                  />
-                  <Route
-                    path="calendar"
-                    element={<Suspense fallback={<PageLoader />}><Calendar /></Suspense>}
-                  />
-                  <Route
-                    path="rooms"
-                    element={<Suspense fallback={<PageLoader />}><Rooms /></Suspense>}
-                  />
-                  <Route
-                    path="housekeeping"
-                    element={<Suspense fallback={<PageLoader />}><Housekeeping /></Suspense>}
-                  />
-                  <Route
-                    path="reservations"
-                    element={<Suspense fallback={<PageLoader />}><Reservations /></Suspense>}
-                  />
-                  <Route
-                    path="reservations/new"
-                    element={<Suspense fallback={<PageLoader />}><NewReservation /></Suspense>}
-                  />
-                  <Route
-                    path="guests"
-                    element={<Suspense fallback={<PageLoader />}><Guests /></Suspense>}
-                  />
-                  <Route
-                    path="settings"
-                    element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>}
-                  />
-                  <Route
-                    path="channels"
-                    element={<Suspense fallback={<PageLoader />}><ChannelManager /></Suspense>}
-                  />
-                  <Route
-                    path="staff"
-                    element={<AdminRoute><Suspense fallback={<PageLoader />}><Staff /></Suspense></AdminRoute>}
-                  />
-                </Route>
-              </Routes>
-            </BrowserRouter>
-          </AuthProvider>
+          <SocketProvider>
+            <AuthProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                    <Route index element={<Navigate to="/dashboard" />} />
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route
+                      path="analytics"
+                      element={<Suspense fallback={<PageLoader />}><Analytics /></Suspense>}
+                    />
+                    <Route
+                      path="calendar"
+                      element={<Suspense fallback={<PageLoader />}><Calendar /></Suspense>}
+                    />
+                    <Route
+                      path="rooms"
+                      element={<Suspense fallback={<PageLoader />}><Rooms /></Suspense>}
+                    />
+                    <Route
+                      path="housekeeping"
+                      element={<Suspense fallback={<PageLoader />}><Housekeeping /></Suspense>}
+                    />
+                    <Route
+                      path="reservations"
+                      element={<Suspense fallback={<PageLoader />}><Reservations /></Suspense>}
+                    />
+                    <Route
+                      path="reservations/new"
+                      element={<Suspense fallback={<PageLoader />}><NewReservation /></Suspense>}
+                    />
+                    <Route
+                      path="guests"
+                      element={<Suspense fallback={<PageLoader />}><Guests /></Suspense>}
+                    />
+                    <Route
+                      path="settings"
+                      element={<Suspense fallback={<PageLoader />}><Settings /></Suspense>}
+                    />
+                    <Route
+                      path="channels"
+                      element={<Suspense fallback={<PageLoader />}><ChannelManager /></Suspense>}
+                    />
+                    <Route
+                      path="staff"
+                      element={<AdminRoute><Suspense fallback={<PageLoader />}><Staff /></Suspense></AdminRoute>}
+                    />
+                  </Route>
+                </Routes>
+              </BrowserRouter>
+            </AuthProvider>
+          </SocketProvider>
         </QueryClientProvider>
       </ToastProvider>
     </ThemeProvider>

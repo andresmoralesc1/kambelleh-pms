@@ -3,15 +3,31 @@ import crypto from 'crypto';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import airbnbService from '../services/airbnbService.js';
+import bookingService from '../services/bookingService.js';
 
 const router = express.Router();
 
-// Estado en memoria (en producción usar Redis o BD)
+// Estado en memoria para Airbnb
 let airbnbState = {
   connected: false,
   lastSync: null,
   mockMode: process.env.AIRBNB_MOCK === 'true',
 };
+
+// Helper para obtener estado de Booking desde BD
+async function getBookingChannelStatus() {
+  const isMock = process.env.BOOKING_MOCK === 'true';
+  const channel = await prisma.channelConnection.findFirst({
+    where: { channel: 'BOOKING' }
+  });
+  const connected = isMock || (channel?.isActive || false);
+  return {
+    connected,
+    lastSync: channel?.lastSync || null,
+    mockMode: isMock,
+    credentialsConfigured: !!(process.env.BOOKING_USERNAME && process.env.BOOKING_PASSWORD && process.env.BOOKING_HOTEL_ID),
+  };
+}
 
 // GET /api/channels/airbnb/status
 router.get('/airbnb/status', authenticate, authorize('ADMIN'), async (req, res) => {

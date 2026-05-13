@@ -61,6 +61,10 @@ router.post('/', authenticate, authorize('ADMIN'), async (req, res, next) => {
 
     res.status(201).json({ room });
 
+    // Emit socket event for real-time sync
+    const io = req.app.get('io');
+    if (io) io.emit('room:updated', room);
+
     logActivity({ userId: req.user.id, action: 'CREATED', resource: 'ROOM', resourceId: room.id, details: { number, name, type }, ipAddress: req.ip });
   } catch (err) {
     next(err);
@@ -78,6 +82,10 @@ router.put('/:id', authenticate, authorize('ADMIN'), async (req, res, next) => {
     });
 
     res.json({ room });
+
+    // Emit socket event for real-time sync
+    const io = req.app.get('io');
+    if (io) io.emit('room:updated', room);
 
     logActivity({ userId: req.user.id, action: 'UPDATED', resource: 'ROOM', resourceId: req.params.id, details: { number, name, status }, ipAddress: req.ip });
   } catch (err) {
@@ -99,6 +107,10 @@ router.delete('/:id', authenticate, authorize('ADMIN'), async (req, res, next) =
 
     await prisma.room.delete({ where: { id: req.params.id } });
     res.json({ message: 'Room deleted' });
+
+    // Emit socket event for real-time sync
+    const io = req.app.get('io');
+    if (io) io.emit('room:updated', { id: req.params.id, deleted: true });
 
     logActivity({ userId: req.user.id, action: 'DELETED', resource: 'ROOM', resourceId: req.params.id, details: null, ipAddress: req.ip });
   } catch (err) {

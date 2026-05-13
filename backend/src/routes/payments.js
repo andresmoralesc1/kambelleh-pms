@@ -56,39 +56,42 @@ router.post('/confirm', authenticate, async (req, res, next) => {
     const reservation = await prisma.reservation.findUnique({ where: { id: reservationId } });
     if (!reservation) return res.status(404).json({ error: 'Reserva no encontrada' });
 
-    // Idempotency: ya existe pago para esta reserva
-    const existingPayment = await prisma.payment.findFirst({
-      where: { reservationId, stripeChargeId: paymentIntentId },
-    });
-    if (existingPayment) {
-      return res.json({ payment: existingPayment });
-    }
+    // Idempotency: use SELECT FOR UPDATE inside transaction to prevent
+    // race conditions on concurrent confirm attempts (e.g. double-click)
+    const [payment] = await prisma.$transaction(async (tx) => {
+      const [{ id: existingId }] = await tx.$queryRaw`
+        SELECT id FROM payments WHERE stripe_charge_id = ${paymentIntentId} FOR UPDATE
+      `;
+      if (existingId) {
+        // Already processed — return existing record
+        return [await tx.payment.findUnique({ where: { id: existingId } })];
+      }
 
-    // Verificar que no haya otro pago completado para esta reserva
-    const priorPayment = await prisma.payment.findFirst({
-      where: { reservationId, status: 'COMPLETED' },
-    });
-    if (priorPayment) {
-      return res.status(409).json({ error: 'Esta reserva ya tiene un pago completado' });
-    }
+      const priorPayment = await tx.payment.findFirst({
+        where: { reservationId, status: 'COMPLETED' },
+      });
+      if (priorPayment) {
+        throw Object.assign(new Error('Esta reserva ya tiene un pago completado'), { status: 409 });
+      }
 
-    // Create payment record + update reservation atomically
-    const [payment] = await prisma.$transaction([
-      prisma.payment.create({
-        data: {
-          reservationId,
-          amount: reservation.totalAmount,
-          currency: 'eur',
-          status: 'COMPLETED',
-          stripeChargeId: paymentIntentId,
-          method: 'card',
-        },
-      }),
-      prisma.reservation.update({
-        where: { id: reservationId },
-        data: { stripePaymentId: paymentIntentId, status: 'CONFIRMED' },
-      }),
-    ]);
+      const [newPayment] = await tx.$transaction([
+        tx.payment.create({
+          data: {
+            reservationId,
+            amount: reservation.totalAmount,
+            currency: 'eur',
+            status: 'COMPLETED',
+            stripeChargeId: paymentIntentId,
+            method: 'card',
+          },
+        }),
+        tx.reservation.update({
+          where: { id: reservationId },
+          data: { stripePaymentId: paymentIntentId, status: 'CONFIRMED' },
+        }),
+      ]);
+      return [newPayment];
+    });
 
     res.json({ payment });
 

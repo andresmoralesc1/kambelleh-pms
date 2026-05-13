@@ -81,6 +81,10 @@ router.post('/', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, r
 
     res.status(201).json({ guest });
 
+    // Emit socket event for real-time sync
+    const io = req.app.get('io');
+    if (io) io.emit('guest:created', guest);
+
     logActivity({ userId: req.user.id, action: 'CREATED', resource: 'GUEST', resourceId: guest.id, details: { name, email }, ipAddress: req.ip });
   } catch (err) {
     next(err);

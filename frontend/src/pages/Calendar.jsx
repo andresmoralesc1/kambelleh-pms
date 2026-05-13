@@ -4,7 +4,9 @@ import { es } from 'date-fns/locale/es';
 import { ChevronLeft, ChevronRight, Plus, Bed, Star, AlertTriangle, X, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useDashboardCalendar } from '../hooks/useQueries';
+import { useSocket } from '../context/SocketContext';
 import { roomColor } from './Dashboard';
+import { useQueryClient } from '@tanstack/react-query';
 
 const STATUS_COLORS = {
   PENDING: 'bg-amber-100 text-amber-700',
@@ -159,7 +161,9 @@ export default function Calendar() {
   const [statusFilter, setStatusFilter] = useState('');
   const [overflowState, setOverflowState] = useState(null); // { day: Date, reservations: [], anchorRef }
   const monthKey = format(currentMonth, 'yyyy-MM');
-  const { data, isLoading } = useDashboardCalendar(monthKey, roomFilter || undefined, statusFilter || undefined);
+  const { data, isLoading, refetch } = useDashboardCalendar(monthKey, roomFilter || undefined, statusFilter || undefined);
+  const { socket } = useSocket();
+  const queryClient = useQueryClient();
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -192,6 +196,22 @@ export default function Calendar() {
   useEffect(() => {
     setOverflowState(null);
   }, [monthKey]);
+
+  // Listen for real-time updates to refetch calendar data
+  useEffect(() => {
+    if (!socket) return;
+    const handleUpdate = () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'calendar'] });
+    };
+    socket.on('reservation:created', handleUpdate);
+    socket.on('reservation:updated', handleUpdate);
+    socket.on('room:updated', handleUpdate);
+    return () => {
+      socket.off('reservation:created', handleUpdate);
+      socket.off('reservation:updated', handleUpdate);
+      socket.off('room:updated', handleUpdate);
+    };
+  }, [socket, queryClient]);
 
   const hasActiveFilters = roomFilter || statusFilter;
 

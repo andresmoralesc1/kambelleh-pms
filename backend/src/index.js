@@ -6,6 +6,8 @@ import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+import jwt from 'jsonwebtoken';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -26,6 +28,8 @@ import cleaningRoutes from './routes/cleaning.js';
 import activityLogRoutes from './routes/activityLog.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import stripeWebhook from './routes/stripeWebhook.js';
+import publicRoutes from './routes/public.js';
+import cronRoutes from './routes/cron.js';
 
 const app = express();
 const server = createServer(app);
@@ -33,9 +37,53 @@ const server = createServer(app);
 // Trust proxy (for rate limiting behind nginx)
 app.set('trust proxy', 1);
 
+// Initialize Socket.IO
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+  },
+});
+
+// Make io available to routes via req.app.get('io')
+app.set('io', io);
+
+// Socket.IO authentication middleware — reads the same accessToken cookie as HTTP
+io.use((socket, next) => {
+  const cookies = {};
+  const cookieHeader = socket.handshake.headers.cookie || '';
+  cookieHeader.split(';').forEach(c => {
+    const [name, ...vals] = c.split('=');
+    if (name) cookies[name.trim()] = vals.join('=').trim();
+  });
+
+  const token = cookies.accessToken;
+  if (!token) {
+    return next(new Error('No autenticado'));
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.user = decoded;
+    next();
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return next(new Error('La sesión ha expirado'));
+    }
+    return next(new Error('Token inválido'));
+  }
+});
+
+io.on('connection', (socket) => {
+  console.log(`🔌 Socket.IO conectado: usuario ${socket.user.userId}`);
+  socket.on('disconnect', () => {
+    console.log(`🔌 Socket.IO desconectado: usuario ${socket.user.userId}`);
+  });
+});
+
 // ================== MIDDLEWARE ==================
 
-// Stripe webhook needs raw body - must be before express.json()
+// Stripe webhook needs raw body — must be before express.json()
 app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), stripeWebhook);
 
 app.use(helmet());
@@ -49,7 +97,7 @@ app.use(express.json());
 
 // Rate limiting — global
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
+  windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
@@ -66,6 +114,7 @@ const authLimiter = rateLimit({
 });
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
+app.use('/api/public', authLimiter);
 
 // ================== ROUTES ==================
 
@@ -81,6 +130,8 @@ app.use('/api/notes', internalNotesRoutes);
 app.use('/api/channels', channelManagerRoutes);
 app.use('/api/cleaning', cleaningRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
+app.use('/api/public', publicRoutes);
+app.use('/api/cron', cronRoutes);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
@@ -98,6 +149,8 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(errorHandler);
 
+// ================== SERVER START ==================
+
 const PORT = process.env.PORT || 3001;
 
 server.listen(PORT, () => {
@@ -107,6 +160,9 @@ server.listen(PORT, () => {
 // Graceful shutdown — drain connections before exiting
 const shutdown = (signal) => {
   console.log(`\n${signal} received. Shutting down gracefully...`);
+  io.close(() => {
+    console.log('Socket.IO server closed.');
+  });
   server.close(async () => {
     console.log('HTTP server closed.');
     try {
@@ -117,7 +173,6 @@ const shutdown = (signal) => {
     }
     process.exit(0);
   });
-  // Force exit after 10s if graceful shutdown hangs
   setTimeout(() => {
     console.error('Forced exit after timeout.');
     process.exit(1);

@@ -2,7 +2,7 @@ import express from 'express';
 import { startOfDay, endOfDay, addDays } from 'date-fns';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
-import { sendReservationConfirmation } from '../services/email.js';
+import { sendReservationConfirmation, sendCheckinReminder, sendCheckoutReminder, sendInvoice } from '../services/email.js';
 import { logActivity } from '../utils/logActivity.js';
 
 const router = express.Router();
@@ -156,6 +156,10 @@ router.post('/', authenticate, async (req, res, next) => {
 
     res.status(201).json({ reservation });
 
+    // Emit socket event for real-time sync
+    const io = req.app.get('io');
+    if (io) io.emit('reservation:created', reservation);
+
     // Enviar email de confirmación (no-bloqueante)
     sendReservationConfirmation(reservation.guest, reservation, reservation.room);
 
@@ -234,6 +238,9 @@ router.put('/:id', authenticate, async (req, res, next) => {
         });
       });
 
+      const io = req.app.get('io');
+      if (io) io.emit('reservation:updated', reservation);
+
       return res.json({ reservation });
     }
 
@@ -244,6 +251,9 @@ router.put('/:id', authenticate, async (req, res, next) => {
     });
 
     res.json({ reservation });
+
+    const io = req.app.get('io');
+    if (io) io.emit('reservation:updated', reservation);
   } catch (err) {
     next(err);
   }
@@ -288,6 +298,29 @@ router.patch('/:id/status', authenticate, async (req, res, next) => {
     });
 
     res.json({ reservation: updated });
+
+    // Emit socket event for real-time sync
+    const io = req.app.get('io');
+    if (io) io.emit('reservation:updated', updated);
+
+    // Also emit room:updated if status change affected room status
+    if (status === 'CHECKED_IN' || status === 'CHECKED_OUT' || status === 'CANCELLED') {
+      const room = await prisma.room.findUnique({ where: { id: reservation.roomId } });
+      if (room && io) io.emit('room:updated', room);
+    }
+
+    // Email triggers (fire-and-forget, no await)
+    if (status === 'CHECKED_IN') {
+      sendCheckinReminder(updated.guest, updated, updated.room);
+    } else if (status === 'CHECKED_OUT') {
+      // Fetch the most recent completed payment for the invoice
+      const payment = await prisma.payment.findFirst({
+        where: { reservationId: reservation.id, status: 'COMPLETED' },
+        orderBy: { createdAt: 'desc' },
+      });
+      sendInvoice(updated.guest, updated, updated.room, payment);
+      sendCheckoutReminder(updated.guest, updated, updated.room);
+    }
 
     logActivity({ userId: req.user.id, action: `STATUS_CHANGED_TO_${status}`, resource: 'RESERVATION', resourceId: req.params.id, details: { previousStatus: reservation.status, newStatus: status }, ipAddress: req.ip });
   } catch (err) {

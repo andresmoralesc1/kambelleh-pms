@@ -140,6 +140,8 @@ model Reservation {
   createdById    String?            @map("created_by_id")
   createdAt      DateTime           @default(now()) @map("created_at")
   updatedAt      DateTime           @updatedAt @map("updated_at")
+  reminderCheckedInSentAt DateTime? @map("reminder_checkin_sent_at")
+  reminderCheckedOutSentAt DateTime? @map("reminder_checkout_sent_at")
 
   guest      Guest      @relation(fields: [guestId], references: [id])
   room       Room       @relation(fields: [roomId], references: [id])

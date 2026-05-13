@@ -4,8 +4,11 @@ import { Bed, TrendingUp, Users, CalendarDays, ArrowRight, Sunrise, Sun, Moon, D
 import { useDashboardStats } from '../hooks/useQueries';
 import { useUpdateReservationStatus } from '../hooks/useQueries';
 import { useExportReservations } from '../hooks/useExport';
+import { useSocket } from '../context/SocketContext';
 import { Link } from 'react-router-dom';
 import { formatCurrencyCompact } from '../utils/currency';
+import { useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -107,12 +110,25 @@ function DepartureRow({ reservation, onAction }) {
 }
 
 export default function Dashboard() {
-  const { data, isLoading } = useDashboardStats();
+  const { data, isLoading, refetch } = useDashboardStats();
   const updateStatus = useUpdateReservationStatus();
   const exportReservations = useExportReservations();
+  const { socket } = useSocket();
+  const queryClient = useQueryClient();
   const stats = data?.stats;
   const greeting = getGreeting();
   const GreetingIcon = greeting.icon;
+
+  // Listen for reservation:updated to refresh dashboard stats in real time
+  useEffect(() => {
+    if (!socket) return;
+    const handleReservationUpdated = () => {
+      // Invalidate dashboard cache so stats refetch on next render
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    };
+    socket.on('reservation:updated', handleReservationUpdated);
+    return () => socket.off('reservation:updated', handleReservationUpdated);
+  }, [socket, queryClient]);
 
   const handleStatusAction = async (id, status) => {
     try {
