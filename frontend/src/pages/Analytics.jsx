@@ -62,11 +62,11 @@ export default function Analytics() {
 
   return (
     <Layout>
-      <main id="main-content" className="flex-1 overflow-auto p-6">
+      <main id="main-content" className="flex-1 overflow-auto p-6 bg-surface-50 dark:bg-surface-900 min-h-screen">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-surface-900 dark:text-white">Analíticas</h1>
-            <p className="text-sm text-surface-500 mt-0.5">Rendimiento y tendencias del hotel</p>
+            <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-100">Analíticas</h1>
+            <p className="text-sm text-surface-500 dark:text-surface-400 mt-0.5">Rendimiento y tendencias del hotel</p>
           </div>
           <select
             value={months}
