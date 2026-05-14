@@ -127,7 +127,10 @@ router.post('/refresh', async (req, res, next) => {
     await storeRefreshToken(user.id, tokens.refreshToken, expiresAt);
     setAuthCookies(res, tokens, req);
 
-    res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+    // Rotate CSRF token on refresh as well
+    const newCsrfToken = generateCsrfToken(user.id);
+
+    res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role }, csrfToken: newCsrfToken });
   } catch (err) {
     clearAuthCookies(res);
     return res.status(401).json({ error: 'Token de sesión inválido' });

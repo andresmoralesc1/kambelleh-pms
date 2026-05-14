@@ -1,8 +1,22 @@
 import axios from 'axios';
 
+const CSRF_TOKEN_KEY = 'csrfToken';
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
+});
+
+// Request interceptor: add CSRF token to all state-changing requests
+api.interceptors.request.use((config) => {
+  // Only add CSRF token for state-changing methods
+  if (['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase())) {
+    const token = localStorage.getItem(CSRF_TOKEN_KEY);
+    if (token) {
+      config.headers['X-CSRF-Token'] = token;
+    }
+  }
+  return config;
 });
 
 // Response interceptor: handle 401 (session expired) and other errors globally
@@ -10,7 +24,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Navigate to login with session expired message
       if (window.location.pathname !== '/login') {
         window.location.href = '/login?expired=1';
       }
