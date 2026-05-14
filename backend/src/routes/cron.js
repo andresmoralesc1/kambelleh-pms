@@ -5,6 +5,22 @@ import { sendCheckinReminder, sendCheckoutReminder } from '../services/email.js'
 
 const router = express.Router();
 
+// Cleanup expired OAuthState entries to prevent table bloat
+async function cleanupExpiredOAuthStates() {
+  try {
+    const result = await prisma.oAuthState.deleteMany({
+      where: { expiresAt: { lt: new Date() } },
+    });
+    if (result.count > 0) {
+      console.log(`Cleaned up ${result.count} expired OAuthState entries`);
+    }
+    return result.count;
+  } catch (err) {
+    console.error('OAuthState cleanup error:', err.message);
+    return 0;
+  }
+}
+
 // GET /api/cron/reservation-reminders
 // Protected by X_CRON_SECRET header — meant to be called by an external cron job every hour
 router.get('/reservation-reminders', async (req, res, next) => {
@@ -82,7 +98,11 @@ router.get('/reservation-reminders', async (req, res, next) => {
     sent.checkin = updatedCheckin.map((r) => r.id);
     sent.checkout = updatedCheckout.map((r) => r.id);
 
+    // Run OAuthState cleanup and reservation reminders together
+    const cleaned = await cleanupExpiredOAuthStates();
+
     res.json({
+      cleanupOAuthStates: cleaned,
       sent,
       alreadySent,
       summary: {
@@ -90,6 +110,20 @@ router.get('/reservation-reminders', async (req, res, next) => {
         checkoutRemindersSent: sent.checkout.length,
       },
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/cron/cleanup-oauth - Manual cleanup trigger (also called by reservation-reminders)
+router.get('/cleanup-oauth', async (req, res, next) => {
+  try {
+    const secret = req.headers['x_cron_secret'];
+    if (!secret || secret !== process.env.CRON_SECRET) {
+      return res.status(401).json({ error: 'Token de verificación faltante o inválido' });
+    }
+    const cleaned = await cleanupExpiredOAuthStates();
+    res.json({ message: `Limpieza completada. ${cleaned} registros eliminados.` });
   } catch (err) {
     next(err);
   }

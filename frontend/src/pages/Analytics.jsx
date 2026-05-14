@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DollarSign, Calendar, Bed, Clock } from 'lucide-react';
 import { getDashboardAnalytics } from '../api';
@@ -12,7 +12,12 @@ import LeadTimeChart from '../components/analytics/LeadTimeChart';
 import TopRooms from '../components/analytics/TopRooms';
 
 export default function Analytics() {
-  const dark = document.documentElement.classList.contains('dark');
+  const [dark, setDark] = useState(document.documentElement.classList.contains('dark'));
+  useEffect(() => {
+    const observer = new MutationObserver(() => setDark(document.documentElement.classList.contains('dark')));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
   const [months, setMonths] = useState(6);
   const { data: settingsData } = useSettings();
   const currency = settingsData?.currency || 'EUR';

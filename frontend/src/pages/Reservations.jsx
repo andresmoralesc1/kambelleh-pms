@@ -352,7 +352,11 @@ export default function Reservations() {
   const [selected, setSelected] = useState(null);
   const [page, setPage] = useState(1);
   const LIMIT = 20;
-  const { data, isLoading } = useReservations({ page, limit: LIMIT });
+  const { data, isLoading } = useReservations({
+    page,
+    limit: LIMIT,
+    ...(statusFilter !== 'ALL' && { status: statusFilter }),
+  });
   const exportReservations = useExportReservations();
   const { socket } = useSocket();
   const queryClient = useQueryClient();
@@ -374,10 +378,10 @@ export default function Reservations() {
   const reservations = data?.reservations || [];
   const total = data?.total ?? 0;
   const totalPages = data?.totalPages ?? 1;
+  // Search is still local since the API doesn't support text search on guests
   const filtered = reservations.filter(r => {
-    const matchStatus = statusFilter === 'ALL' || r.status === statusFilter;
     const matchSearch = !search || r.guest?.name?.toLowerCase().includes(search.toLowerCase()) || r.room?.number?.includes(search);
-    return matchStatus && matchSearch;
+    return matchSearch;
   });
 
   // Reset to page 1 when filters change
