@@ -40,6 +40,7 @@ export const getReservation = (id) => api.get(`/reservations/${id}`);
 export const createReservation = (data) => api.post('/reservations', data);
 export const updateReservation = (id, data) => api.put(`/reservations/${id}`, data);
 export const updateReservationStatus = (id, status, cancellationReason) => api.patch(`/reservations/${id}/status`, { status, cancellationReason });
+export const deleteReservation = (id) => api.delete(`/reservations/${id}`);
 
 // Guests
 export const getGuests = (params) => api.get('/guests', { params });

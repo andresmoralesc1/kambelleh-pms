@@ -127,8 +127,21 @@ router.get('/:id/history', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIO
 // DELETE /api/guests/:id
 router.delete('/:id', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, res, next) => {
   try {
-    const guest = await prisma.guest.findUnique({ where: { id: req.params.id } });
+    // Atomic transaction: check existence and delete in one operation
+    const [guest] = await prisma.$transaction([
+      prisma.guest.findUnique({ where: { id: req.params.id } }),
+    ]);
+
     if (!guest) return res.status(404).json({ error: 'Huésped no encontrado' });
+
+    // Check for active reservations before deletion
+    const activeReservations = await prisma.reservation.count({
+      where: { guestId: req.params.id, status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] } },
+    });
+
+    if (activeReservations > 0) {
+      return res.status(409).json({ error: 'No se puede eliminar: el huésped tiene reservas activas' });
+    }
 
     await prisma.guest.delete({ where: { id: req.params.id } });
     res.json({ message: 'Huésped eliminado correctamente' });

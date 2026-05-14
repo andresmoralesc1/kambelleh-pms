@@ -23,7 +23,18 @@ export function useRoom(id) {
 }
 export function useCreateRoom() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: api.createRoom, onSuccess: () => qc.invalidateQueries({ queryKey: keys.rooms() }) });
+  return useMutation({
+    mutationFn: api.createRoom,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.rooms() });
+      qc.invalidateQueries({ queryKey: keys.dashboard() });
+      qc.invalidateQueries({ queryKey: keys.calendar() });
+      toast.success('Habitación creada correctamente');
+    },
+    onError: () => {
+      toast.error('Error al crear la habitación');
+    },
+  });
 }
 export function useUpdateRoom() {
   const qc = useQueryClient();
@@ -38,7 +49,18 @@ export function useUpdateRoom() {
 }
 export function useDeleteRoom() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: api.deleteRoom, onSuccess: () => qc.invalidateQueries({ queryKey: keys.rooms() }) });
+  return useMutation({
+    mutationFn: api.deleteRoom,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: keys.rooms() });
+      qc.invalidateQueries({ queryKey: keys.dashboard() });
+      qc.invalidateQueries({ queryKey: keys.calendar() });
+      toast.success('Habitación eliminada correctamente');
+    },
+    onError: () => {
+      toast.error('Error al eliminar la habitación');
+    },
+  });
 }
 
 // Reservations
@@ -50,11 +72,19 @@ export function useReservation(id) {
 }
 export function useCreateReservation() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: api.createReservation, onSuccess: () => {
-    qc.invalidateQueries({ queryKey: ['reservations'] });
-    qc.invalidateQueries({ queryKey: keys.dashboard() });
-    qc.invalidateQueries({ queryKey: keys.calendar() });
-  }});
+  return useMutation({
+    mutationFn: api.createReservation,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['reservations'] });
+      qc.invalidateQueries({ queryKey: keys.dashboard() });
+      qc.invalidateQueries({ queryKey: keys.calendar() });
+      qc.invalidateQueries({ queryKey: keys.rooms() });
+      toast.success('Reserva creada correctamente');
+    },
+    onError: () => {
+      toast.error('Error al crear la reserva');
+    },
+  });
 }
 export function useUpdateReservation() {
   const qc = useQueryClient();
@@ -64,15 +94,46 @@ export function useUpdateReservation() {
       qc.invalidateQueries({ queryKey: keys.reservation(id) });
       qc.invalidateQueries({ queryKey: ['reservations'] });
       qc.invalidateQueries({ queryKey: keys.dashboard() });
-    }
+      qc.invalidateQueries({ queryKey: keys.calendar() });
+      qc.invalidateQueries({ queryKey: keys.rooms() });
+      toast.success('Reserva actualizada correctamente');
+    },
+    onError: () => {
+      toast.error('Error al actualizar la reserva');
+    },
   });
 }
 export function useUpdateReservationStatus() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: ({ id, status, cancellationReason }) => api.updateReservationStatus(id, status, cancellationReason), onSuccess: () => {
-    qc.invalidateQueries({ queryKey: ['reservations'] });
-    qc.invalidateQueries({ queryKey: keys.dashboard() });
-  }});
+  return useMutation({
+    mutationFn: ({ id, status, cancellationReason }) => api.updateReservationStatus(id, status, cancellationReason),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['reservations'] });
+      qc.invalidateQueries({ queryKey: keys.dashboard() });
+      qc.invalidateQueries({ queryKey: keys.calendar() });
+      qc.invalidateQueries({ queryKey: keys.rooms() });
+      toast.success('Estado de reserva actualizado');
+    },
+    onError: () => {
+      toast.error('Error al actualizar el estado de la reserva');
+    },
+  });
+}
+export function useDeleteReservation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.deleteReservation,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['reservations'] });
+      qc.invalidateQueries({ queryKey: keys.dashboard() });
+      qc.invalidateQueries({ queryKey: keys.calendar() });
+      qc.invalidateQueries({ queryKey: keys.rooms() });
+      toast.success('Reserva eliminada correctamente');
+    },
+    onError: () => {
+      toast.error('Error al eliminar la reserva');
+    },
+  });
 }
 
 // Guests
@@ -84,15 +145,42 @@ export function useGuest(id) {
 }
 export function useCreateGuest() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: api.createGuest, onSuccess: () => qc.invalidateQueries({ queryKey: ['guests'] }) });
+  return useMutation({
+    mutationFn: api.createGuest,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['guests'] });
+      toast.success('Huésped creado correctamente');
+    },
+    onError: () => {
+      toast.error('Error al crear el huésped');
+    },
+  });
 }
 export function useUpdateGuest() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: ({ id, data }) => api.updateGuest(id, data), onSuccess: () => { qc.invalidateQueries({ queryKey: [ 'guests' ] }); } });
+  return useMutation({
+    mutationFn: ({ id, data }) => api.updateGuest(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['guests'] });
+      toast.success('Huésped actualizado correctamente');
+    },
+    onError: () => {
+      toast.error('Error al actualizar el huésped');
+    },
+  });
 }
 export function useDeleteGuest() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: api.deleteGuest, onSuccess: () => qc.invalidateQueries({ queryKey: ['guests'] }) });
+  return useMutation({
+    mutationFn: api.deleteGuest,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['guests'] });
+      toast.success('Huésped eliminado correctamente');
+    },
+    onError: () => {
+      toast.error('Error al eliminar el huésped');
+    },
+  });
 }
 
 // Users / Staff
@@ -216,6 +304,10 @@ export function useCreateNote() {
     mutationFn: api.createNote,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['notes'] });
+      toast.success('Nota creada correctamente');
+    },
+    onError: () => {
+      toast.error('Error al crear la nota');
     },
   });
 }
@@ -225,6 +317,10 @@ export function useDeleteNote() {
     mutationFn: api.deleteNote,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['notes'] });
+      toast.success('Nota eliminada correctamente');
+    },
+    onError: () => {
+      toast.error('Error al eliminar la nota');
     },
   });
 }

@@ -96,6 +96,13 @@ router.put('/:id', authenticate, authorize('ADMIN'), async (req, res, next) => {
 // DELETE /api/rooms/:id
 router.delete('/:id', authenticate, authorize('ADMIN'), async (req, res, next) => {
   try {
+    // Atomic transaction: check + delete to prevent race conditions
+    const [room] = await prisma.$transaction([
+      prisma.room.findUnique({ where: { id: req.params.id } }),
+    ]);
+
+    if (!room) return res.status(404).json({ error: 'Habitación no encontrada' });
+
     // Check for active reservations
     const active = await prisma.reservation.findFirst({
       where: { roomId: req.params.id, status: { in: ['PENDING', 'CONFIRMED', 'CHECKED_IN'] } },

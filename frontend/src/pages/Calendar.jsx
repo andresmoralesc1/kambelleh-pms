@@ -201,7 +201,8 @@ export default function Calendar() {
   useEffect(() => {
     if (!socket) return;
     const handleUpdate = () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboard', 'calendar'] });
+      queryClient.invalidateQueries({ queryKey: keys.calendar(monthKey) });
+      queryClient.invalidateQueries({ queryKey: keys.dashboard() });
     };
     socket.on('reservation:created', handleUpdate);
     socket.on('reservation:updated', handleUpdate);
@@ -211,7 +212,7 @@ export default function Calendar() {
       socket.off('reservation:updated', handleUpdate);
       socket.off('room:updated', handleUpdate);
     };
-  }, [socket, queryClient]);
+  }, [socket, queryClient, monthKey]);
 
   const hasActiveFilters = roomFilter || statusFilter;
 

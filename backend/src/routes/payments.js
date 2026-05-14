@@ -49,7 +49,7 @@ router.post('/create-intent', authenticate, authorize('ADMIN', 'MANAGER', 'RECEP
 });
 
 // POST /api/payments/confirm
-router.post('/confirm', authenticate, async (req, res, next) => {
+router.post('/confirm', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIST'), async (req, res, next) => {
   try {
     const { reservationId, paymentIntentId } = req.body;
 
@@ -141,9 +141,16 @@ router.post('/refund', authenticate, authorize('ADMIN'), async (req, res, next) 
 
     await client.refunds.create({ payment_intent: payment.stripeChargeId });
 
-    await prisma.payment.update({
-      where: { id: paymentId },
-      data: { status: 'REFUNDED' },
+    // Refund processed atomically with reservation status update
+    await prisma.$transaction(async (tx) => {
+      await tx.payment.update({
+        where: { id: paymentId },
+        data: { status: 'REFUNDED' },
+      });
+      await tx.reservation.update({
+        where: { id: payment.reservationId },
+        data: { status: 'PENDING', stripePaymentId: null },
+      });
     });
 
     res.json({ message: 'Refund processed' });
