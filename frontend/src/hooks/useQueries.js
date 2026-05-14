@@ -359,6 +359,10 @@ export function useConnectChannel() {
     mutationFn: api.connectAirbnbChannel,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['channel', 'airbnb', 'status'] });
+      toast.success('Airbnb conectado correctamente');
+    },
+    onError: () => {
+      toast.error('Error al conectar con Airbnb');
     },
   });
 }
@@ -368,6 +372,10 @@ export function useDisconnectChannel() {
     mutationFn: api.disconnectAirbnbChannel,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['channel', 'airbnb', 'status'] });
+      toast.success('Airbnb desconectado correctamente');
+    },
+    onError: () => {
+      toast.error('Error al desconectar Airbnb');
     },
   });
 }
@@ -376,8 +384,14 @@ export function useSyncChannel() {
   return useMutation({
     mutationFn: api.syncAirbnbChannel,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['reservations'] });
+      qc.invalidateQueries({ queryKey: ['reservations'], refetchType: 'all' });
       qc.invalidateQueries({ queryKey: keys.dashboard() });
+      qc.invalidateQueries({ queryKey: keys.calendar() });
+      qc.invalidateQueries({ queryKey: keys.rooms() });
+      toast.success('Sincronización con Airbnb completada');
+    },
+    onError: () => {
+      toast.error('Error al sincronizar con Airbnb');
     },
   });
 }
@@ -396,6 +410,10 @@ export function useConnectGoogleCalendar() {
     mutationFn: api.connectGoogleCalendar,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['channel', 'google', 'status'] });
+      toast.success('Google Calendar conectado correctamente');
+    },
+    onError: () => {
+      toast.error('Error al conectar con Google Calendar');
     },
   });
 }
@@ -406,6 +424,10 @@ export function useDisconnectGoogleCalendar() {
     mutationFn: api.disconnectGoogleCalendar,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['channel', 'google', 'status'] });
+      toast.success('Google Calendar desconectado correctamente');
+    },
+    onError: () => {
+      toast.error('Error al desconectar Google Calendar');
     },
   });
 }
@@ -415,8 +437,14 @@ export function useSyncGoogleCalendar() {
   return useMutation({
     mutationFn: api.syncGoogleCalendar,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['reservations'] });
+      qc.invalidateQueries({ queryKey: ['reservations'], refetchType: 'all' });
       qc.invalidateQueries({ queryKey: keys.dashboard() });
+      qc.invalidateQueries({ queryKey: keys.calendar() });
+      qc.invalidateQueries({ queryKey: keys.rooms() });
+      toast.success('Sincronización con Google Calendar completada');
+    },
+    onError: () => {
+      toast.error('Error al sincronizar con Google Calendar');
     },
   });
 }
