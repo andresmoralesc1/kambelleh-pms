@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { DollarSign, Calendar, Bed, Clock } from 'lucide-react';
 import { getDashboardAnalytics } from '../api';
 import { useSettings } from '../hooks/useQueries';
-import Layout from '../components/Layout';
 import KPICard from '../components/analytics/KPICard';
 import RevenueChart from '../components/analytics/RevenueChart';
 import ADRChart from '../components/analytics/ADRChart';
@@ -54,51 +53,15 @@ export default function Analytics() {
 
   if (isLoading) {
     return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin w-8 h-8 border-2 border-primary-600 dark:border-primary-400 border-t-transparent rounded-full" aria-label="Cargando analytics" />
-        </div>
-      </Layout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin w-8 h-8 border-2 border-primary-600 dark:border-primary-400 border-t-transparent rounded-full" aria-label="Cargando analytics" />
+      </div>
     );
   }
 
   if (!hasData) {
     return (
-      <Layout>
-        <main id="main-content" className="flex-1 overflow-auto p-6 bg-surface-50 dark:bg-surface-900 min-h-screen">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-100">Analíticas</h1>
-              <p className="text-sm text-surface-500 dark:text-surface-400 mt-0.5">Rendimiento y tendencias del hotel</p>
-            </div>
-            <select
-              value={months}
-              onChange={(e) => setMonths(Number(e.target.value))}
-              className="px-3 py-2 rounded-xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 text-surface-700 dark:text-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              aria-label="Periodo de análisis"
-            >
-              <option value={3}>Últimos 3 meses</option>
-              <option value={6}>Últimos 6 meses</option>
-              <option value={12}>Últimos 12 meses</option>
-            </select>
-          </div>
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-surface-200 dark:bg-surface-700 flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-surface-500 dark:text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-            </div>
-            <h3 className="font-semibold text-surface-700 dark:text-surface-200 mb-1 text-lg">Sin datos de analíticas</h3>
-            <p className="text-sm text-surface-500 dark:text-surface-400 max-w-xs">
-              No hay reservas completadas suficientes para mostrar analíticas. Las métricas aparecerán automáticamente cuando haya datos.
-            </p>
-          </div>
-        </main>
-      </Layout>
-    );
-  }
-
-  return (
-    <Layout>
-      <main id="main-content" className="flex-1 overflow-auto p-6 bg-surface-50 dark:bg-surface-900 min-h-screen">
+      <>
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-100">Analíticas</h1>
@@ -115,33 +78,63 @@ export default function Analytics() {
             <option value={12}>Últimos 12 meses</option>
           </select>
         </div>
-
-        {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" aria-label="Métricas clave">
-          <KPICard label="Ingresos este mes" value={fmt.format(comp.revenueThisMonth || 0)} change={comp.revenueChange} icon={DollarSign} dark={dark} />
-          <KPICard label="Reservas este mes" value={comp.reservationsThisMonth || 0} change={comp.reservationChange} icon={Calendar} dark={dark} />
-          <KPICard label="ADR promedio" value={fmt.format(avgADR)} icon={Bed} dark={dark} />
-          <KPICard label="Lead time promedio" value={`${avgLead} días`} icon={Clock} dark={dark} />
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-surface-200 dark:bg-surface-700 flex items-center justify-center mb-4">
+            <svg className="w-8 h-8 text-surface-500 dark:text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+          </div>
+          <h3 className="font-semibold text-surface-700 dark:text-surface-200 mb-1 text-lg">Sin datos de analíticas</h3>
+          <p className="text-sm text-surface-500 dark:text-surface-400 max-w-xs">
+            No hay reservas completadas suficientes para mostrar analíticas. Las métricas aparecerán automáticamente cuando haya datos.
+          </p>
         </div>
+      </>
+    );
+  }
 
-        {/* Revenue & ADR */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          <RevenueChart monthly={monthly} dark={dark} />
-          <ADRChart monthly={monthly} dark={dark} />
+  return (
+    <>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-surface-900 dark:text-surface-100">Analíticas</h1>
+          <p className="text-sm text-surface-500 dark:text-surface-400 mt-0.5">Rendimiento y tendencias del hotel</p>
         </div>
+        <select
+          value={months}
+          onChange={(e) => setMonths(Number(e.target.value))}
+          className="px-3 py-2 rounded-xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 text-surface-700 dark:text-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          aria-label="Periodo de análisis"
+        >
+          <option value={3}>Últimos 3 meses</option>
+          <option value={6}>Últimos 6 meses</option>
+          <option value={12}>Últimos 12 meses</option>
+        </select>
+      </div>
 
-        {/* Reservations & Status */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          <ReservationsChart monthly={monthly} dark={dark} />
-          <StatusPieChart statusData={statusData} dark={dark} />
-        </div>
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" aria-label="Métricas clave">
+        <KPICard label="Ingresos este mes" value={fmt.format(comp.revenueThisMonth || 0)} change={comp.revenueChange} icon={DollarSign} dark={dark} />
+        <KPICard label="Reservas este mes" value={comp.reservationsThisMonth || 0} change={comp.reservationChange} icon={Calendar} dark={dark} />
+        <KPICard label="ADR promedio" value={fmt.format(avgADR)} icon={Bed} dark={dark} />
+        <KPICard label="Lead time promedio" value={`${avgLead} días`} icon={Clock} dark={dark} />
+      </div>
 
-        {/* Lead Time & Top Rooms */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <LeadTimeChart leadTimeData={leadTimeData} dark={dark} />
-          <TopRooms topRooms={data?.topRooms} />
-        </div>
-      </main>
-    </Layout>
+      {/* Revenue & ADR */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <RevenueChart monthly={monthly} dark={dark} />
+        <ADRChart monthly={monthly} dark={dark} />
+      </div>
+
+      {/* Reservations & Status */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <ReservationsChart monthly={monthly} dark={dark} />
+        <StatusPieChart statusData={statusData} dark={dark} />
+      </div>
+
+      {/* Lead Time & Top Rooms */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <LeadTimeChart leadTimeData={leadTimeData} dark={dark} />
+        <TopRooms topRooms={data?.topRooms} />
+      </div>
+    </>
   );
 }
