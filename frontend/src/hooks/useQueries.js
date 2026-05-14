@@ -75,7 +75,7 @@ export function useCreateReservation() {
   return useMutation({
     mutationFn: api.createReservation,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['reservations'] });
+      qc.invalidateQueries({ queryKey: ['reservations'], refetchType: 'all' });
       qc.invalidateQueries({ queryKey: keys.dashboard() });
       qc.invalidateQueries({ queryKey: keys.calendar() });
       qc.invalidateQueries({ queryKey: keys.rooms() });
@@ -92,7 +92,7 @@ export function useUpdateReservation() {
     mutationFn: ({ id, data }) => api.updateReservation(id, data),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: keys.reservation(id) });
-      qc.invalidateQueries({ queryKey: ['reservations'] });
+      qc.invalidateQueries({ queryKey: ['reservations'], refetchType: 'all' });
       qc.invalidateQueries({ queryKey: keys.dashboard() });
       qc.invalidateQueries({ queryKey: keys.calendar() });
       qc.invalidateQueries({ queryKey: keys.rooms() });
@@ -108,7 +108,7 @@ export function useUpdateReservationStatus() {
   return useMutation({
     mutationFn: ({ id, status, cancellationReason }) => api.updateReservationStatus(id, status, cancellationReason),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['reservations'] });
+      qc.invalidateQueries({ queryKey: ['reservations'], refetchType: 'all' });
       qc.invalidateQueries({ queryKey: keys.dashboard() });
       qc.invalidateQueries({ queryKey: keys.calendar() });
       qc.invalidateQueries({ queryKey: keys.rooms() });
@@ -124,7 +124,7 @@ export function useDeleteReservation() {
   return useMutation({
     mutationFn: api.deleteReservation,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['reservations'] });
+      qc.invalidateQueries({ queryKey: ['reservations'], refetchType: 'all' });
       qc.invalidateQueries({ queryKey: keys.dashboard() });
       qc.invalidateQueries({ queryKey: keys.calendar() });
       qc.invalidateQueries({ queryKey: keys.rooms() });

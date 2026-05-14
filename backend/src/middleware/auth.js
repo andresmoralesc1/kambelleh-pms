@@ -73,16 +73,20 @@ export async function invalidateRefreshToken(token) {
   await prisma.refreshToken.deleteMany({ where: { token } });
 }
 
-export function setAuthCookies(res, tokens) {
+export function setAuthCookies(res, tokens, req) {
+  // Use secure flag when connection is HTTPS (including behind trusted proxy)
+  const isSecure = process.env.NODE_ENV === 'production' ||
+    (req && (req.secure || req.headers['x-forwarded-proto'] === 'https'));
+
   res.cookie('accessToken', tokens.accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecure,
     sameSite: 'lax',
     maxAge: 15 * 60 * 1000, // 15 min
   });
   res.cookie('refreshToken', tokens.refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecure,
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });

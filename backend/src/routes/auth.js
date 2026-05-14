@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import prisma from '../config/database.js';
 import { authenticate, generateTokens, setAuthCookies, clearAuthCookies, storeRefreshToken, validateRefreshToken, invalidateRefreshToken } from '../middleware/auth.js';
+import { generateCsrfToken } from '../middleware/csrf.js';
 
 const router = express.Router();
 
@@ -38,9 +39,12 @@ router.post('/register', async (req, res, next) => {
     const tokens = generateTokens(user.id);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await storeRefreshToken(user.id, tokens.refreshToken, expiresAt);
-    setAuthCookies(res, tokens);
+    setAuthCookies(res, tokens, req);
 
-    res.status(201).json({ user });
+    // Generate CSRF token for state-changing requests
+    const csrfToken = generateCsrfToken(user.id);
+
+    res.status(201).json({ user, csrfToken });
   } catch (err) {
     next(err);
   }
@@ -70,9 +74,14 @@ router.post('/login', async (req, res, next) => {
     // Store refresh token for rotation
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await storeRefreshToken(user.id, tokens.refreshToken, expiresAt);
-    setAuthCookies(res, tokens);
+    setAuthCookies(res, tokens, req);
+
+    // Generate CSRF token for state-changing requests
+    const csrfToken = generateCsrfToken(user.id);
+
     res.json({
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      csrfToken,
     });
   } catch (err) {
     next(err);
@@ -116,7 +125,7 @@ router.post('/refresh', async (req, res, next) => {
     const tokens = generateTokens(user.id);
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await storeRefreshToken(user.id, tokens.refreshToken, expiresAt);
-    setAuthCookies(res, tokens);
+    setAuthCookies(res, tokens, req);
 
     res.json({ user: { id: user.id, email: user.email, name: user.name, role: user.role } });
   } catch (err) {

@@ -63,8 +63,15 @@ router.post('/confirm', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIS
         SELECT id FROM payments WHERE stripe_charge_id = ${paymentIntentId} FOR UPDATE
       `;
       if (existingId) {
-        // Already processed — return existing record
-        return [await tx.payment.findUnique({ where: { id: existingId } })];
+        const existing = await tx.payment.findUnique({ where: { id: existingId } });
+        if (existing.status === 'REFUNDED') {
+          throw Object.assign(new Error('Este pago ha sido reembolsado y no puede confirmarse'), { status: 409 });
+        }
+        if (existing.status === 'COMPLETED') {
+          throw Object.assign(new Error('Esta reserva ya tiene un pago completado'), { status: 409 });
+        }
+        // Return existing record for other statuses
+        return [existing];
       }
 
       const priorPayment = await tx.payment.findFirst({

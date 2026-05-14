@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Eye, X, CheckCircle, XCircle, Clock, AlertCircle, CalendarDays, Download, StickyNote, Trash2 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import { useReservations, useUpdateReservationStatus, useNotes, useCreateNote, useDeleteNote } from '../hooks/useQueries';
 import { useExportReservations } from '../hooks/useExport';
 import { useSocket } from '../context/SocketContext';
@@ -223,7 +224,7 @@ function ReservationModal({ reservation, onClose }) {
             {reservation.specialRequests && (
               <div>
                 <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-0.5">Solicitudes especiales</p>
-                <p className="text-surface-700 dark:text-surface-300">{reservation.specialRequests}</p>
+                <p className="text-surface-700 dark:text-surface-300">{DOMPurify.sanitize(reservation.specialRequests)}</p>
               </div>
             )}
             <div>

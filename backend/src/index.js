@@ -32,6 +32,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import stripeWebhook from './routes/stripeWebhook.js';
 import publicRoutes from './routes/public.js';
 import cronRoutes from './routes/cron.js';
+import { csrfMiddleware } from './middleware/csrf.js';
 
 const app = express();
 const server = createServer(app);
@@ -105,9 +106,30 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
 // CORS: allow multiple origins (comma-separated in FRONTEND_URL env var)
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
-  .split(',')
-  .map((o) => o.trim());
+function parseAllowedOrigins() {
+  const env = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const origins = env.split(',').map(o => o.trim());
+
+  // Reject wildcards in production — they introduce security risk
+  // because cookies would be sent to any subdomain matching the pattern
+  if (process.env.NODE_ENV === 'production') {
+    for (const origin of origins) {
+      if (origin.includes('*')) {
+        console.error(`[CORS] Bloqueo: FRONTEND_URL contiene wildcard '${origin}' — esto expondría credenciales a subdominios no esperados. Usar dominios exactos en producción.`);
+        process.exit(1);
+      }
+      // Validate it looks like a real domain (has TLD, no suspicious patterns)
+      if (!origin.includes('.') || origin.startsWith('.')) {
+        console.error(`[CORS] Bloqueo: FRONTEND_URL '${origin}' no parece un dominio válido en producción.`);
+        process.exit(1);
+      }
+    }
+  }
+
+  return origins;
+}
+
+const allowedOrigins = parseAllowedOrigins();
 app.use(cors({
   origin: allowedOrigins.length > 1 ? allowedOrigins : allowedOrigins[0],
   credentials: true,
@@ -115,6 +137,10 @@ app.use(cors({
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(express.json());
+
+// CSRF protection for state-changing requests (applied after auth middleware per-route)
+// The csrfMiddleware checks req.user so it must run after authenticate middleware on each route
+// Global application order: json -> rate limit -> auth -> csrf -> routes
 
 // Rate limiting — global
 const limiter = rateLimit({
@@ -137,22 +163,34 @@ app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 app.use('/api/public', authLimiter);
 
+// Rate limiting — public availability endpoint (prevent enumeration/DoS)
+const availabilityLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30, // 30 checks per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Demasiadas consultas de disponibilidad. Intenta de nuevo en un minuto.' },
+});
+app.use('/api/public/rooms/availability', availabilityLimiter);
+
 // ================== ROUTES ==================
 
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/rooms', roomRoutes);
-app.use('/api/reservations', reservationRoutes);
-app.use('/api/guests', guestRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/exports', exportsRoutes);
-app.use('/api/notes', internalNotesRoutes);
-app.use('/api/channels', channelManagerRoutes);
-app.use('/api/cleaning', cleaningRoutes);
-app.use('/api/activity-logs', activityLogRoutes);
-app.use('/api/public', publicRoutes);
-app.use('/api/cron', cronRoutes);
+// Wrap routes with CSRF middleware - runs after authenticate per-route
+// since authenticate is called inside each route handler
+app.use('/api/auth', csrfMiddleware, authRoutes);
+app.use('/api/users', csrfMiddleware, userRoutes);
+app.use('/api/rooms', csrfMiddleware, roomRoutes);
+app.use('/api/reservations', csrfMiddleware, reservationRoutes);
+app.use('/api/guests', csrfMiddleware, guestRoutes);
+app.use('/api/payments', csrfMiddleware, paymentRoutes);
+app.use('/api/dashboard', csrfMiddleware, dashboardRoutes);
+app.use('/api/exports', csrfMiddleware, exportsRoutes);
+app.use('/api/notes', csrfMiddleware, internalNotesRoutes);
+app.use('/api/channels', csrfMiddleware, channelManagerRoutes);
+app.use('/api/cleaning', csrfMiddleware, cleaningRoutes);
+app.use('/api/activity-logs', csrfMiddleware, activityLogRoutes);
+app.use('/api/public', csrfMiddleware, publicRoutes);
+app.use('/api/cron', csrfMiddleware, cronRoutes);
 
 // Health check
 app.get('/api/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
