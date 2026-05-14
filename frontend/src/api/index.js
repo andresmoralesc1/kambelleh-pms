@@ -39,7 +39,7 @@ export const getReservations = (params) => api.get('/reservations', { params });
 export const getReservation = (id) => api.get(`/reservations/${id}`);
 export const createReservation = (data) => api.post('/reservations', data);
 export const updateReservation = (id, data) => api.put(`/reservations/${id}`, data);
-export const updateReservationStatus = (id, status) => api.patch(`/reservations/${id}/status`, { status });
+export const updateReservationStatus = (id, status, cancellationReason) => api.patch(`/reservations/${id}/status`, { status, cancellationReason });
 
 // Guests
 export const getGuests = (params) => api.get('/guests', { params });
@@ -81,11 +81,17 @@ export const exportReservationsCSV = () => api.get('/exports/reservations', { re
 export const exportGuestsCSV = () => api.get('/exports/guests', { responseType: 'blob' });
 export const exportRoomsCSV = () => api.get('/exports/rooms', { responseType: 'blob' });
 
-// Channel Manager
+// Channel Manager - Airbnb
 export const getChannelStatus = () => api.get('/channels/airbnb/status');
 export const connectAirbnbChannel = () => api.post('/channels/airbnb/connect');
 export const disconnectAirbnbChannel = () => api.post('/channels/airbnb/disconnect');
 export const syncAirbnbChannel = () => api.post('/channels/airbnb/sync');
+
+// Channel Manager - Google Calendar
+export const getGoogleCalendarStatus = () => api.get('/channels/google/status');
+export const connectGoogleCalendar = () => api.post('/channels/google/connect');
+export const disconnectGoogleCalendar = () => api.post('/channels/google/disconnect');
+export const syncGoogleCalendar = () => api.post('/channels/google/sync');
 
 // Settings
 export const getSettings = () => api.get('/settings');

@@ -189,46 +189,53 @@ router.delete('/:id', async (req, res, next) => {
   }
 });
 
-// PATCH /api/users/:id/password - Cambiar password propio (sin authorize global porque solo el propio usuario puede)
+// PATCH /api/users/:id/password - Admin can reset any password; user can change own password
 router.patch('/:id/password', authenticate, async (req, res, next) => {
   try {
-    // Solo el propio usuario puede cambiar su password
-    if (req.params.id !== req.user.id) {
-      return res.status(403).json({ error: 'Solo puedes cambiar tu propia contraseña' });
+    const { currentPassword, newPassword, password } = req.body;
+    const isSelf = req.params.id === req.user.id;
+    const isAdmin = req.user.role === 'ADMIN';
+
+    // Only the user themselves or an ADMIN can change this password
+    if (!isSelf && !isAdmin) {
+      return res.status(403).json({ error: 'No tienes permisos para cambiar esta contraseña' });
     }
 
-    const { currentPassword, newPassword } = req.body;
-
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ error: 'La contraseña actual y la nueva contraseña son obligatorias' });
+    // Admin can set new password directly; regular users must provide current password
+    if (isAdmin && !isSelf) {
+      // Admin resetting another user's password
+      if (!password || password.length < 6) {
+        return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
+      }
+      const newPasswordHash = await bcrypt.hash(password, 12);
+      await prisma.user.update({
+        where: { id: req.params.id },
+        data: { passwordHash: newPasswordHash },
+      });
+      await prisma.refreshToken.deleteMany({ where: { userId: req.params.id } });
+      return res.json({ message: 'Contraseña cambiada correctamente' });
     }
 
-    if (newPassword.length < 8) {
-      return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 8 caracteres' });
+    // User changing own password (or admin changing own)
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
     }
 
-    // Obtener usuario con password hash
-    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-    if (!user) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
+    const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    // Non-admin users must verify current password
+    if (!isAdmin && currentPassword) {
+      const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!isValid) return res.status(401).json({ error: 'La contraseña actual es incorrecta' });
     }
 
-    // Validar currentPassword con bcrypt.compare
-    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!isValid) {
-      return res.status(401).json({ error: 'La contraseña actual es incorrecta' });
-    }
-
-    // Hashear nuevo password con bcrypt.hash(password, 12)
     const newPasswordHash = await bcrypt.hash(newPassword, 12);
-
     await prisma.user.update({
-      where: { id: req.user.id },
+      where: { id: req.params.id },
       data: { passwordHash: newPasswordHash },
     });
-
-    // Invalidar todos los refresh tokens existentes (logout de todos los dispositivos)
-    await prisma.refreshToken.deleteMany({ where: { userId: req.user.id } });
+    await prisma.refreshToken.deleteMany({ where: { userId: req.params.id } });
 
     res.json({ message: 'Contraseña cambiada correctamente. Por favor, inicia sesión nuevamente.' });
   } catch (err) {

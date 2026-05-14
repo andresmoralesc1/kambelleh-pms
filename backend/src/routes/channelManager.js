@@ -4,6 +4,7 @@ import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import airbnbService from '../services/airbnbService.js';
 import bookingService from '../services/bookingService.js';
+import googleCalendarService from '../services/googleCalendarService.js';
 
 const router = express.Router();
 
@@ -214,6 +215,112 @@ router.get('/airbnb/callback', async (req, res) => {
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/channels?connected=true`);
   } catch (err) {
     console.error('Airbnb token exchange failed:', err.message);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/channels?error=token_exchange_failed`);
+  }
+});
+
+// ================== GOOGLE CALENDAR ==================
+
+// GET /api/channels/google/status
+router.get('/google/status', authenticate, authorize('ADMIN'), async (req, res) => {
+  const isMock = process.env.GOOGLE_CALENDAR_MOCK === 'true';
+  const channel = await prisma.channelConnection.findFirst({
+    where: { channel: 'GOOGLE' }
+  });
+  const connected = isMock || (channel?.isActive && !!channel?.accessToken);
+
+  res.json({
+    connected,
+    lastSync: channel?.lastSync || null,
+    mockMode: isMock,
+    credentialsConfigured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+  });
+});
+
+// POST /api/channels/google/connect
+router.post('/google/connect', authenticate, authorize('ADMIN'), async (req, res) => {
+  const isMock = process.env.GOOGLE_CALENDAR_MOCK === 'true';
+
+  if (isMock) {
+    googleCalendarService.connected = true;
+    res.json({
+      success: true,
+      message: 'Conectado Google Calendar en modo demo',
+      mockMode: true,
+    });
+    return;
+  }
+
+  const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = process.env;
+
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+    return res.status(400).json({
+      error: 'Credenciales de Google no configuradas. Configure GOOGLE_CLIENT_ID y GOOGLE_CLIENT_SECRET en el archivo .env'
+    });
+  }
+
+  const authUrlData = googleCalendarService.getAuthorizationUrl();
+  if (!authUrlData) {
+    return res.status(500).json({ error: 'Error al generar URL de autorización' });
+  }
+
+  await prisma.oAuthState.create({
+    data: {
+      state: authUrlData.state,
+      channel: 'GOOGLE',
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    },
+  });
+
+  res.json({ authUrl: authUrlData.url, state: authUrlData.state });
+});
+
+// POST /api/channels/google/disconnect
+router.post('/google/disconnect', authenticate, authorize('ADMIN'), async (req, res) => {
+  googleCalendarService.disconnect();
+  res.json({ success: true, message: 'Desconectado de Google Calendar' });
+});
+
+// POST /api/channels/google/sync
+router.post('/google/sync', authenticate, authorize('ADMIN'), async (req, res) => {
+  try {
+    const result = await googleCalendarService.syncReservations();
+    res.json({
+      success: true,
+      eventsCreated: result.eventsCreated,
+      mockMode: result.mockMode,
+      lastSync: result.lastSync,
+    });
+  } catch (err) {
+    console.error('Google Calendar sync error:', err.message);
+    res.status(500).json({ error: 'Error al sincronizar con Google Calendar' });
+  }
+});
+
+// GET /api/channels/google/callback
+router.get('/google/callback', async (req, res) => {
+  const { code, state, error } = req.query;
+
+  if (error) {
+    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/channels?error=${encodeURIComponent(error)}`);
+  }
+
+  if (!code) {
+    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/channels?error=missing_code`);
+  }
+
+  const oauthState = await prisma.oAuthState.findUnique({ where: { state } });
+  if (!oauthState) {
+    return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/channels?error=invalid_state`);
+  }
+
+  await prisma.oAuthState.delete({ where: { id: oauthState.id } });
+
+  try {
+    await googleCalendarService.exchangeCodeForTokens(code);
+    res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/channels?connected=google`);
+  } catch (err) {
+    console.error('Google token exchange failed:', err.message);
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/channels?error=token_exchange_failed`);
   }
 });

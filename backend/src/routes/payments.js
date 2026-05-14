@@ -102,22 +102,13 @@ router.post('/confirm', authenticate, async (req, res, next) => {
 });
 
 // GET /api/payments/:reservationId
-router.get('/:reservationId', authenticate, async (req, res, next) => {
+router.get('/:reservationId', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIST'), async (req, res, next) => {
   try {
-    // Verify the user has access to this reservation (owns the guest or is staff)
     const reservation = await prisma.reservation.findUnique({
       where: { id: req.params.reservationId },
-      include: { guest: { select: { id: true } } },
     });
 
     if (!reservation) return res.status(404).json({ error: 'Reserva no encontrada' });
-
-    // Staff can view any payment; non-staff can only view their own reservation's payments
-    if (req.user.role !== 'ADMIN' && req.user.role !== 'RECEPCIONIST') {
-      if (reservation.guestId !== req.user.id) {
-        return res.status(403).json({ error: 'No tienes permisos para ver estos pagos' });
-      }
-    }
 
     const payments = await prisma.payment.findMany({
       where: { reservationId: req.params.reservationId },

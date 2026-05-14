@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { DoorOpen, Plus, Pencil, Trash2, Bed, Wifi, Wind, Coffee, Tv, Search, Download } from 'lucide-react';
-import { useRooms, useCreateRoom, useDeleteRoom } from '../hooks/useQueries';
+import { useRooms, useCreateRoom, useUpdateRoom, useDeleteRoom } from '../hooks/useQueries';
 import { useExportRooms } from '../hooks/useExport';
 import { useSocket } from '../context/SocketContext';
 import { formatCurrencyCompact } from '../utils/currency';
@@ -25,13 +25,18 @@ function RoomModal({ room, onClose }) {
   });
   const [error, setError] = useState('');
   const createRoom = useCreateRoom();
+const updateRoom = useUpdateRoom();
   const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     try {
-      await createRoom.mutateAsync({ ...form, pricePerNight: parseFloat(form.pricePerNight) });
+      if (room) {
+          await updateRoom.mutateAsync({ id: room.id, data: { ...form, pricePerNight: parseFloat(form.pricePerNight) } });
+        } else {
+          await createRoom.mutateAsync({ ...form, pricePerNight: parseFloat(form.pricePerNight) });
+        }
       toast.success(room ? `Habitación #${form.number} actualizada` : `Habitación #${form.number} creada`);
       onClose();
     } catch (err) {

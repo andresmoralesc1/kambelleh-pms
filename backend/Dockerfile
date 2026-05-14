@@ -16,8 +16,7 @@ RUN npx prisma generate
 # Copy source
 COPY src ./src/
 
-# Copy frontend build (served as static)
-COPY ../frontend/dist ./public/
+# Frontend is served separately via nginx, no need to copy dist here
 
 # Switch to non-root user
 USER appuser

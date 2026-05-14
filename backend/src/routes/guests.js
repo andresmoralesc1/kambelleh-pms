@@ -124,4 +124,19 @@ router.get('/:id/history', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIO
   }
 });
 
+// DELETE /api/guests/:id
+router.delete('/:id', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, res, next) => {
+  try {
+    const guest = await prisma.guest.findUnique({ where: { id: req.params.id } });
+    if (!guest) return res.status(404).json({ error: 'Huésped no encontrado' });
+
+    await prisma.guest.delete({ where: { id: req.params.id } });
+    res.json({ message: 'Huésped eliminado correctamente' });
+
+    logActivity({ userId: req.user.id, action: 'DELETED', resource: 'GUEST', resourceId: req.params.id, details: { name: guest.name }, ipAddress: req.ip });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

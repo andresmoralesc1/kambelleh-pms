@@ -32,6 +32,7 @@ export function useUpdateRoom() {
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: keys.room(id) });
       qc.invalidateQueries({ queryKey: keys.rooms() });
+      qc.invalidateQueries({ queryKey: keys.dashboard() });
     }
   });
 }
@@ -51,6 +52,7 @@ export function useCreateReservation() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: api.createReservation, onSuccess: () => {
     qc.invalidateQueries({ queryKey: ['reservations'] });
+    qc.invalidateQueries({ queryKey: keys.dashboard() });
     qc.invalidateQueries({ queryKey: keys.calendar() });
   }});
 }
@@ -61,12 +63,13 @@ export function useUpdateReservation() {
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: keys.reservation(id) });
       qc.invalidateQueries({ queryKey: ['reservations'] });
+      qc.invalidateQueries({ queryKey: keys.dashboard() });
     }
   });
 }
 export function useUpdateReservationStatus() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: ({ id, status }) => api.updateReservationStatus(id, status), onSuccess: () => {
+  return useMutation({ mutationFn: ({ id, status, cancellationReason }) => api.updateReservationStatus(id, status, cancellationReason), onSuccess: () => {
     qc.invalidateQueries({ queryKey: ['reservations'] });
     qc.invalidateQueries({ queryKey: keys.dashboard() });
   }});
@@ -85,7 +88,7 @@ export function useCreateGuest() {
 }
 export function useUpdateGuest() {
   const qc = useQueryClient();
-  return useMutation({ mutationFn: ({ id, data }) => api.updateGuest(id, data), onSuccess: (_, { id }) => qc.invalidateQueries({ queryKey: keys.guest(id) }) });
+  return useMutation({ mutationFn: ({ id, data }) => api.updateGuest(id, data), onSuccess: () => { qc.invalidateQueries({ queryKey: [ 'guests' ] }); } });
 }
 export function useDeleteGuest() {
   const qc = useQueryClient();
@@ -276,6 +279,45 @@ export function useSyncChannel() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: api.syncAirbnbChannel,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['reservations'] });
+      qc.invalidateQueries({ queryKey: keys.dashboard() });
+    },
+  });
+}
+
+// Google Calendar hooks
+export function useGoogleCalendarStatus() {
+  return useQuery({
+    queryKey: ['channel', 'google', 'status'],
+    queryFn: () => api.getGoogleCalendarStatus().then(r => r.data),
+  });
+}
+
+export function useConnectGoogleCalendar() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.connectGoogleCalendar,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['channel', 'google', 'status'] });
+    },
+  });
+}
+
+export function useDisconnectGoogleCalendar() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.disconnectGoogleCalendar,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['channel', 'google', 'status'] });
+    },
+  });
+}
+
+export function useSyncGoogleCalendar() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.syncGoogleCalendar,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['reservations'] });
       qc.invalidateQueries({ queryKey: keys.dashboard() });
