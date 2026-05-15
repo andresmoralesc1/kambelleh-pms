@@ -174,6 +174,37 @@ const availabilityLimiter = rateLimit({
 });
 app.use('/api/public/rooms/availability', availabilityLimiter);
 
+// Rate limiting — mutations (stricter: 30 POST/PUT/PATCH/DELETE per minute per IP)
+const mutationLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    // Rate limit by IP + user ID if authenticated, else just IP
+    return req.user ? `${req.ip}:${req.user.id}` : req.ip;
+  },
+  message: { error: 'Demasiadas operaciones. Intenta de nuevo en un minuto.' },
+});
+// Apply to mutation routes via a middleware stack — handled per-route in each router
+// Global mutation rate limit on POST/PUT/PATCH/DELETE methods at /api level
+app.use('/api/reservations', (req, res, next) => {
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return mutationLimiter(req, res, next);
+  next();
+});
+app.use('/api/rooms', (req, res, next) => {
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return mutationLimiter(req, res, next);
+  next();
+});
+app.use('/api/guests', (req, res, next) => {
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return mutationLimiter(req, res, next);
+  next();
+});
+app.use('/api/payments', (req, res, next) => {
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return mutationLimiter(req, res, next);
+  next();
+});
+
 // ================== ROUTES ==================
 
 // Wrap routes with CSRF middleware - runs after authenticate per-route

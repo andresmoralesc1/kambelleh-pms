@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { generateInvoicePdf } from './pdfInvoice.js';
 
 // Lazy initialization to avoid throwing at module load time when key is missing
 let resend = null;
@@ -233,7 +234,7 @@ export async function sendCheckoutReminder(guest, reservation, room) {
 }
 
 /**
- * Factura simplificada (solo email, sin PDF aún).
+ * Factura con PDF adjunto.
  */
 export async function sendInvoice(guest, reservation, room, payment) {
   const subject = `Factura reserva #${reservation.id.slice(0, 8)} - ${HOTEL_NAME}`;
@@ -276,16 +277,28 @@ export async function sendInvoice(guest, reservation, room, payment) {
   try {
     const client = getResend();
     if (client) {
+      // Generate PDF
+      const pdfBuffer = await generateInvoicePdf({ reservation, guest, room, payment });
+      const invoiceNum = `INV-${reservation.id.slice(0, 8).toUpperCase()}.pdf`;
+
       await client.emails.send({
         from: `${HOTEL_NAME} <${HOTEL_EMAIL}>`,
         to: guest?.email || '',
         subject,
         html: wrapEmail(html),
+        attachments: [
+          {
+            filename: invoiceNum,
+            content: pdfBuffer.toString('base64'),
+            contentType: 'application/pdf',
+          },
+        ],
       });
     } else {
-      console.log('[Email] Would send invoice to', guest?.email);
+      console.log('[Email] Would send invoice (with PDF) to', guest?.email);
     }
   } catch (err) {
     console.error('[Email] Invoice failed:', err.message);
+    // Non-blocking — payment already confirmed
   }
 }

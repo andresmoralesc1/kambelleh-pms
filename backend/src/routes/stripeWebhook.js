@@ -2,6 +2,7 @@ import express from 'express';
 import Stripe from 'stripe';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
+import getRedis from '../config/redis.js';
 
 // Lazy initialization to avoid crashing when STRIPE_SECRET_KEY is not set
 let stripe = null;
@@ -11,6 +12,28 @@ const getStripe = () => {
   }
   return stripe;
 };
+
+// Stripe idempotency: track processed event IDs in Redis (24h window)
+// Prevents replay attacks where Stripe retries a webhook delivery
+async function isEventProcessed(eventId) {
+  try {
+    const redis = getRedis();
+    const key = `stripe:event:${eventId}`;
+    const exists = await redis.exists(key);
+    return exists === 1;
+  } catch {
+    return false; // Redis unavailable — process event (fail open)
+  }
+}
+
+async function markEventProcessed(eventId) {
+  try {
+    const redis = getRedis();
+    await redis.set(`stripe:event:${eventId}`, '1', 'EX', 86400);
+  } catch {
+    // Silent — if Redis fails, we still process the event
+  }
+}
 
 const router = express.Router();
 
@@ -46,6 +69,12 @@ async function stripeWebhook(req, res) {
     console.error('Webhook signature verification failed:', err.message);
     return res.status(400).send(`Error de webhook: ${err.message}`);
   }
+
+  // Replay protection: skip already-processed events
+  if (await isEventProcessed(event.id)) {
+    return res.json({ received: true, note: 'already processed' });
+  }
+  await markEventProcessed(event.id);
 
   // Handle the event
   switch (event.type) {
