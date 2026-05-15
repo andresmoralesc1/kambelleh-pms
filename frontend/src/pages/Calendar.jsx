@@ -444,7 +444,7 @@ export default function Calendar() {
 
           {/* Empty overlay */}
           {reservations.length === 0 && blockedDates.length === 0 && !isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none" role="status" aria-live="polite">
               <div className="bg-white/80 dark:bg-surface-800/80 rounded-xl px-4 py-2 text-sm text-surface-500 dark:text-surface-400">
                 Sin reservas{hasActiveFilters ? ' con los filtros activos' : ' este mes'}
               </div>

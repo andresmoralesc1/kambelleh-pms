@@ -21,6 +21,7 @@ export default function NewReservation() {
   const [newGuestMode, setNewGuestMode] = useState(false);
   const [selectedGuest, setSelectedGuest] = useState(null);
   const [guestForm, setGuestForm] = useState({ name: '', email: '', phone: '' });
+  const [nameError, setNameError] = useState('');
   const [adults, setAdults] = useState(1);
   const [children, setChildren] = useState(0);
   const [specialRequests, setSpecialRequests] = useState('');
@@ -58,7 +59,8 @@ export default function NewReservation() {
   };
 
   const handleCreateNewGuest = async () => {
-    if (!guestForm.name) { setError('El nombre es obligatorio'); return; }
+    if (!guestForm.name) { setNameError('El nombre es obligatorio'); return; }
+    setNameError('');
     setError('');
     try {
       const res = await createGuest.mutateAsync(guestForm);
@@ -265,10 +267,14 @@ export default function NewReservation() {
               <div className="mt-4 space-y-3 p-4 bg-surface-50 dark:bg-surface-700 rounded-xl">
                 <div>
                   <label htmlFor="new-guest-name" className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Nombre completo *</label>
-                  <input id="new-guest-name" value={guestForm.name} onChange={e => setGuestForm({ ...guestForm, name: e.target.value })}
-                    className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+                  <input id="new-guest-name" value={guestForm.name} onChange={e => { setGuestForm({ ...guestForm, name: e.target.value }); setNameError(''); }}
+                    className={`w-full px-3 py-2.5 rounded-xl border text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow ${nameError ? 'border-red-400 dark:border-red-600 ring-2 ring-red-200 dark:ring-red-800' : 'border-surface-300 dark:border-surface-600'}`}
                     placeholder="Nombre y apellido"
-                    aria-required="true" />
+                    aria-required="true"
+                    aria-invalid={!!nameError}
+                    aria-describedby={nameError ? 'name-error' : undefined}
+                  />
+                  {nameError && <p id="name-error" className="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{nameError}</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -288,7 +294,9 @@ export default function NewReservation() {
                   className="w-full py-2.5 rounded-xl bg-primary-600 dark:bg-primary-700 text-white text-sm font-medium hover:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                   aria-disabled={createGuest.isPending}
                 >
-                  {createGuest.isPending ? 'Creando...' : 'Continuar'}
+                  {createGuest.isPending ? (
+                  <><div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />Creando...</>
+                ) : 'Continuar'}
                 </button>
               </div>
             )}
@@ -365,7 +373,10 @@ export default function NewReservation() {
               aria-disabled={createReservation.isPending}
             >
               {createReservation.isPending ? (
-                'Creando reserva...'
+                <>
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                  Creando reserva...
+                </>
               ) : (
                 <><Check className="w-4 h-4" /> Confirmar reserva</>
               )}

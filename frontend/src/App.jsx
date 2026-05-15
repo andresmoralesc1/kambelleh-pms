@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './components/ToastProvider';
 import { SocketProvider } from './context/SocketContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -56,14 +57,14 @@ export default function App() {
                   <Route path="/booking" element={<BookingPage />} />
                   <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                     <Route index element={<Navigate to="/dashboard" />} />
-                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
                     <Route
                       path="analytics"
-                      element={<Suspense fallback={<PageLoader />}><Analytics /></Suspense>}
+                      element={<Suspense fallback={<PageLoader />}><ErrorBoundary><Analytics /></ErrorBoundary></Suspense>}
                     />
                     <Route
                       path="calendar"
-                      element={<Suspense fallback={<PageLoader />}><Calendar /></Suspense>}
+                      element={<Suspense fallback={<PageLoader />}><ErrorBoundary><Calendar /></ErrorBoundary></Suspense>}
                     />
                     <Route
                       path="rooms"
@@ -79,7 +80,7 @@ export default function App() {
                     />
                     <Route
                       path="reservations/new"
-                      element={<Suspense fallback={<PageLoader />}><NewReservation /></Suspense>}
+                      element={<Suspense fallback={<PageLoader />}><ErrorBoundary><NewReservation /></ErrorBoundary></Suspense>}
                     />
                     <Route
                       path="guests"
