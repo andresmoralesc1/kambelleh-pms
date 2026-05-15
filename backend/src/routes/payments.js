@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { logActivity } from '../utils/logActivity.js';
+import { cache } from '../utils/cache.js';
 
 // Lazy initialization to avoid crashing when STRIPE_SECRET_KEY is not set
 let stripe = null;
@@ -101,6 +102,7 @@ router.post('/confirm', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIS
     });
 
     res.json({ payment });
+    await cache.invalidateDashboard();
 
     logActivity({ userId: req.user.id, action: 'PAYMENT_COMPLETED', resource: 'PAYMENT', resourceId: payment.id, details: { reservationId, amount: reservation.totalAmount }, ipAddress: req.ip });
   } catch (err) {
@@ -161,6 +163,7 @@ router.post('/refund', authenticate, authorize('ADMIN'), async (req, res, next) 
     });
 
     res.json({ message: 'Refund processed' });
+    await cache.invalidateDashboard();
   } catch (err) {
     next(err);
   }

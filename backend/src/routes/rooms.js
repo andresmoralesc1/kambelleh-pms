@@ -2,6 +2,7 @@ import express from 'express';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { logActivity } from '../utils/logActivity.js';
+import { cache } from '../utils/cache.js';
 
 const router = express.Router();
 
@@ -60,6 +61,7 @@ router.post('/', authenticate, authorize('ADMIN'), async (req, res, next) => {
     });
 
     res.status(201).json({ room });
+    await cache.invalidateDashboard();
 
     // Emit socket event for real-time sync
     const io = req.app.get('io');
@@ -82,6 +84,7 @@ router.put('/:id', authenticate, authorize('ADMIN'), async (req, res, next) => {
     });
 
     res.json({ room });
+    await cache.invalidateDashboard();
 
     // Emit socket event for real-time sync
     const io = req.app.get('io');
@@ -114,6 +117,7 @@ router.delete('/:id', authenticate, authorize('ADMIN'), async (req, res, next) =
 
     await prisma.room.delete({ where: { id: req.params.id } });
     res.json({ message: 'Habitación eliminada' });
+    await cache.invalidateDashboard();
 
     // Emit socket event for real-time sync
     const io = req.app.get('io');

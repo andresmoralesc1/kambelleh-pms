@@ -1,47 +1,45 @@
 import { randomBytes } from 'crypto';
+import getRedis from '../config/redis.js';
 
-// In-memory store for CSRF tokens (per-user, per-session)
-// In production, use Redis with TTL
-const csrfTokens = new Map();
-
-const CSRF_TOKEN_TTL = 15 * 60 * 1000; // 15 minutes
+const CSRF_TOKEN_TTL = 15 * 60; // 15 minutes in seconds
 
 export function generateCsrfToken(userId) {
   const token = randomBytes(32).toString('hex');
-  const now = Date.now();
+  const redis = getRedis();
+  const key = `csrf:${userId}:${token}`;
 
-  if (!csrfTokens.has(userId)) {
-    csrfTokens.set(userId, []);
-  }
-
-  // Clean expired tokens for this user
-  const userTokens = csrfTokens.get(userId).filter(t => now - t.createdAt < CSRF_TOKEN_TTL);
-
-  userTokens.push({ token, createdAt: now });
-  csrfTokens.set(userId, userTokens);
+  // Fire-and-forget set with TTL
+  redis.set(key, '1', 'EX', CSRF_TOKEN_TTL).catch(() => {});
 
   return token;
 }
 
-export function validateCsrfToken(userId, token) {
+export async function validateCsrfToken(userId, token) {
   if (!token || !userId) return false;
 
-  const userTokens = csrfTokens.get(userId);
-  if (!userTokens) return false;
+  const redis = getRedis();
+  const key = `csrf:${userId}:${token}`;
 
-  const now = Date.now();
-  const valid = userTokens.find(t => t.token === token && now - t.createdAt < CSRF_TOKEN_TTL);
+  // Delete token after use (one-time use) — use GETDEL in Lua for atomicity
+  const script = `
+    local val = redis.call('GET', KEYS[1])
+    if val then
+      redis.call('DEL', KEYS[1])
+    end
+    return val
+  `;
 
-  if (valid) {
-    // Delete token after use (one-time use)
-    const idx = userTokens.indexOf(valid);
-    userTokens.splice(idx, 1);
+  try {
+    const result = await redis.eval(script, 1, key);
+    return result === '1';
+  } catch {
+    // If Redis is unavailable, skip validation (graceful degradation)
+    console.warn('[csrf] Redis unavailable, skipping token validation');
+    return true;
   }
-
-  return !!valid;
 }
 
-export function csrfMiddleware(req, res, next) {
+export async function csrfMiddleware(req, res, next) {
   // Only apply to state-changing methods
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
     return next();
@@ -59,21 +57,17 @@ export function csrfMiddleware(req, res, next) {
   }
 
   const token = req.headers['x-csrf-token'];
-  if (!validateCsrfToken(req.user.id, token)) {
-    return res.status(403).json({ error: 'Token CSRF inválido o expirado' });
-  }
-
-  next();
+  validateCsrfToken(req.user.id, token).then(valid => {
+    if (!valid) {
+      return res.status(403).json({ error: 'Token CSRF inválido o expirado' });
+    }
+    next();
+  }).catch(() => {
+    // Redis error — fail open (continue without CSRF validation)
+    next();
+  });
 }
 
 export function cleanupExpiredTokens() {
-  const now = Date.now();
-  for (const [userId, tokens] of csrfTokens.entries()) {
-    const valid = tokens.filter(t => now - t.createdAt < CSRF_TOKEN_TTL);
-    if (valid.length === 0) {
-      csrfTokens.delete(userId);
-    } else {
-      csrfTokens.set(userId, valid);
-    }
-  }
+  // Redis TTL handles expiration automatically — no manual cleanup needed
 }

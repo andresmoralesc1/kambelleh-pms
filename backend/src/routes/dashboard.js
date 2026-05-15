@@ -2,12 +2,16 @@ import express from 'express';
 import { startOfDay, endOfDay, startOfMonth, endOfMonth, format, subMonths, eachMonthOfInterval, startOfMonth as startM, endOfMonth as endM } from 'date-fns';
 import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { cache } from '../utils/cache.js';
 
 const router = express.Router();
 
 // GET /api/dashboard/stats
 router.get('/stats', authenticate, async (req, res, next) => {
   try {
+    const cached = await cache.get('dashboard:stats');
+    if (cached) return res.json(cached);
+
     const today = new Date();
     const todayStart = startOfDay(today);
     const todayEnd = endOfDay(today);
@@ -45,7 +49,7 @@ router.get('/stats', authenticate, async (req, res, next) => {
       }),
     ]);
 
-    res.json({
+    const result = {
       stats: {
         totalRooms,
         occupiedToday,
@@ -58,7 +62,10 @@ router.get('/stats', authenticate, async (req, res, next) => {
         arrivals: arrivalsToday,
         departures: departuresToday,
       },
-    });
+    };
+
+    await cache.set('dashboard:stats', result, 60);
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -71,10 +78,12 @@ router.get('/calendar', authenticate, async (req, res, next) => {
     const date = month ? new Date(`${month}-01`) : new Date();
     const start = startOfMonth(date);
     const end = endOfMonth(date);
-
-    // Default active statuses — allow override via ?status=...
     const activeStatuses = ['PENDING', 'CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT'];
     const statusFilter = status ? status.split(',') : activeStatuses;
+
+    const cacheKey = `dashboard:calendar:${month || format(date, 'yyyy-MM')}:${roomId || 'all'}:${status || 'all'}`;
+    const cached = await cache.get(cacheKey);
+    if (cached) return res.json(cached);
 
     const whereReservation = {
       checkIn: { lte: end },
@@ -100,14 +109,15 @@ router.get('/calendar', authenticate, async (req, res, next) => {
         },
         include: { room: { select: { id: true, number: true } } },
       }),
-      // Rooms list for the filter dropdown
       prisma.room.findMany({
         select: { id: true, number: true, name: true, type: true },
         orderBy: [{ floor: 'asc' }, { number: 'asc' }],
       }),
     ]);
 
-    res.json({ reservations, blockedDates, rooms });
+    const result = { reservations, blockedDates, rooms };
+    await cache.set(cacheKey, result, 30);
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -117,6 +127,10 @@ router.get('/calendar', authenticate, async (req, res, next) => {
 router.get('/analytics', authenticate, authorize('ADMIN', 'MANAGER'), async (req, res, next) => {
   try {
     const months = Math.min(parseInt(req.query.months) || 6, 12);
+    const cacheKey = `dashboard:analytics:${months}`;
+    const cached = await cache.get(cacheKey);
+    if (cached) return res.json(cached);
+
     const today = new Date();
     const start = startOfMonth(subMonths(today, months - 1));
     const end = endOfMonth(today);
@@ -205,6 +219,21 @@ router.get('/analytics', authenticate, authorize('ADMIN', 'MANAGER'), async (req
         reservationChange: Math.round(reservationChange * 10) / 10,
       },
     });
+
+    await cache.set(cacheKey, {
+      monthlyData,
+      statusBreakdown,
+      topRooms,
+      leadTimeDistribution,
+      comparison: {
+        revenueThisMonth: Number(thisMonthRevenue._sum.amount || 0),
+        revenueLastMonth: Number(lastMonthRevenue._sum.amount || 0),
+        revenueChange: Math.round(revenueChange * 10) / 10,
+        reservationsThisMonth: thisMonthReservations,
+        reservationsLastMonth: lastMonthReservations,
+        reservationChange: Math.round(reservationChange * 10) / 10,
+      },
+    }, 300);
   } catch (err) {
     next(err);
   }

@@ -5,15 +5,31 @@ import { authenticate, authorize } from '../middleware/auth.js';
 import airbnbService from '../services/airbnbService.js';
 import bookingService from '../services/bookingService.js';
 import googleCalendarService from '../services/googleCalendarService.js';
+import getRedis from '../config/redis.js';
 
+const AIRBNB_STATE_KEY = 'channels:airbnb:state';
 const router = express.Router();
 
-// Estado en memoria para Airbnb
-let airbnbState = {
-  connected: false,
-  lastSync: null,
-  mockMode: process.env.AIRBNB_MOCK === 'true',
-};
+async function getAirbnbState() {
+  try {
+    const redis = getRedis();
+    const raw = await redis.get(AIRBNB_STATE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  // Default state if Redis unavailable
+  return {
+    connected: false,
+    lastSync: null,
+    mockMode: process.env.AIRBNB_MOCK === 'true',
+  };
+}
+
+async function setAirbnbState(state) {
+  try {
+    const redis = getRedis();
+    await redis.set(AIRBNB_STATE_KEY, JSON.stringify(state), 'EX', 86400);
+  } catch {}
+}
 
 // Helper para obtener estado de Booking desde BD
 async function getBookingChannelStatus() {
@@ -34,10 +50,11 @@ async function getBookingChannelStatus() {
 router.get('/airbnb/status', authenticate, authorize('ADMIN'), async (req, res) => {
   const isMock = process.env.AIRBNB_MOCK === 'true';
   const connected = isMock || airbnbService.isConnected();
+  const state = await getAirbnbState();
 
   res.json({
     connected,
-    lastSync: airbnbState.lastSync,
+    lastSync: state.lastSync,
     mockMode: isMock,
     credentialsConfigured: !!(process.env.AIRBNB_CLIENT_ID && process.env.AIRBNB_CLIENT_SECRET),
   });
@@ -48,7 +65,8 @@ router.post('/airbnb/connect', authenticate, authorize('ADMIN'), async (req, res
   const isMock = process.env.AIRBNB_MOCK === 'true';
 
   if (isMock) {
-    airbnbState.connected = true;
+    const state = { connected: true, lastSync: null, mockMode: true };
+    await setAirbnbState(state);
     res.json({
       success: true,
       message: 'Conectado en modo demo',
@@ -87,8 +105,8 @@ router.post('/airbnb/disconnect', authenticate, authorize('ADMIN'), async (req, 
   const isMock = process.env.AIRBNB_MOCK === 'true';
 
   airbnbService.disconnect();
-  airbnbState.connected = false;
-  airbnbState.lastSync = null;
+  const state = { connected: false, lastSync: null, mockMode: isMock };
+  await setAirbnbState(state);
 
   res.json({
     success: true,
@@ -105,8 +123,7 @@ router.post('/airbnb/sync', authenticate, authorize('ADMIN'), async (req, res) =
       // En modo mock, generar reservas de ejemplo
       const mockReservations = airbnbService.generateMockReservations();
       const results = await airbnbService.importReservations(mockReservations);
-
-      airbnbState.lastSync = new Date().toISOString();
+      await setAirbnbState({ ...await getAirbnbState(), lastSync: new Date().toISOString() });
 
       return res.json({
         success: true,
@@ -124,7 +141,7 @@ router.post('/airbnb/sync', authenticate, authorize('ADMIN'), async (req, res) =
     }
 
     const results = await airbnbService.syncAllReservations();
-    airbnbState.lastSync = new Date().toISOString();
+    await setAirbnbState({ ...await getAirbnbState(), lastSync: new Date().toISOString() });
 
     res.json({
       success: true,
@@ -210,7 +227,7 @@ router.get('/airbnb/callback', async (req, res) => {
 
   try {
     await airbnbService.exchangeCodeForTokens(code);
-    airbnbState.connected = true;
+    await setAirbnbState({ ...await getAirbnbState(), connected: true });
 
     res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/channels?connected=true`);
   } catch (err) {

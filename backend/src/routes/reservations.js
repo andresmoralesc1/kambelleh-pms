@@ -4,6 +4,7 @@ import prisma from '../config/database.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { sendReservationConfirmation, sendCheckinReminder, sendCheckoutReminder, sendInvoice } from '../services/email.js';
 import { logActivity } from '../utils/logActivity.js';
+import { cache } from '../utils/cache.js';
 
 const router = express.Router();
 
@@ -156,6 +157,8 @@ router.post('/', authenticate, async (req, res, next) => {
 
     res.status(201).json({ reservation });
 
+    await cache.invalidateDashboard();
+
     // Emit socket event for real-time sync
     const io = req.app.get('io');
     if (io) io.emit('reservation:created', reservation);
@@ -241,6 +244,7 @@ router.put('/:id', authenticate, async (req, res, next) => {
       const io = req.app.get('io');
       if (io) io.emit('reservation:updated', reservation);
 
+      await cache.invalidateDashboard();
       return res.json({ reservation });
     }
 
@@ -251,6 +255,8 @@ router.put('/:id', authenticate, async (req, res, next) => {
     });
 
     res.json({ reservation });
+
+    await cache.invalidateDashboard();
 
     const io = req.app.get('io');
     if (io) io.emit('reservation:updated', reservation);
@@ -298,6 +304,8 @@ router.patch('/:id/status', authenticate, async (req, res, next) => {
     });
 
     res.json({ reservation: updated });
+
+    await cache.invalidateDashboard();
 
     // Emit socket event for real-time sync
     const io = req.app.get('io');

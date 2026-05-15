@@ -33,6 +33,7 @@ import stripeWebhook from './routes/stripeWebhook.js';
 import publicRoutes from './routes/public.js';
 import cronRoutes from './routes/cron.js';
 import { csrfMiddleware } from './middleware/csrf.js';
+import { connectRedis } from './config/redis.js';
 
 const app = express();
 const server = createServer(app);
@@ -212,8 +213,13 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`🔥 Kambelleh PMS API running on port ${PORT}`);
+
+  // Connect to Redis (non-blocking — app works without it)
+  connectRedis().catch(err => {
+    console.warn('[redis] Initial connection failed:', err.message);
+  });
 
   // Schedule reservation reminders — every hour at minute 0
   cron.schedule('0 * * * *', async () => {
@@ -304,6 +310,12 @@ const shutdown = (signal) => {
       console.log('Database connections closed.');
     } catch (err) {
       console.error('Error closing DB connections:', err);
+    }
+    try {
+      await disconnectRedis();
+      console.log('Redis connection closed.');
+    } catch (err) {
+      console.error('Error closing Redis connection:', err);
     }
     process.exit(0);
   });
