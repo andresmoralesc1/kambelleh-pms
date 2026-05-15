@@ -39,7 +39,7 @@ router.post('/create-intent', authenticate, authorize('ADMIN', 'MANAGER', 'RECEP
       currency: 'eur',
       metadata: {
         reservationId: reservation.id,
-        guestName: reservation.guest.name,
+        guestName: reservation.guest?.name || 'Unknown',
       },
     });
 
@@ -60,10 +60,11 @@ router.post('/confirm', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIS
     // Idempotency: use SELECT FOR UPDATE inside transaction to prevent
     // race conditions on concurrent confirm attempts (e.g. double-click)
     const [payment] = await prisma.$transaction(async (tx) => {
-      const [{ id: existingId }] = await tx.$queryRaw`
+      const rows = await tx.$queryRaw`
         SELECT id FROM payments WHERE stripe_charge_id = ${paymentIntentId} FOR UPDATE
       `;
-      if (existingId) {
+      if (rows.length > 0) {
+        const [{ id: existingId }] = rows;
         const existing = await tx.payment.findUnique({ where: { id: existingId } });
         if (existing.status === 'REFUNDED') {
           throw Object.assign(new Error('Este pago ha sido reembolsado y no puede confirmarse'), { status: 409 });
@@ -102,7 +103,7 @@ router.post('/confirm', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIS
     });
 
     res.json({ payment });
-    await cache.invalidateDashboard();
+    cache.invalidateDashboard().catch(() => {});
 
     logActivity({ userId: req.user.id, action: 'PAYMENT_COMPLETED', resource: 'PAYMENT', resourceId: payment.id, details: { reservationId, amount: reservation.totalAmount }, ipAddress: req.ip });
   } catch (err) {
@@ -163,7 +164,7 @@ router.post('/refund', authenticate, authorize('ADMIN'), async (req, res, next) 
     });
 
     res.json({ message: 'Refund processed' });
-    await cache.invalidateDashboard();
+    cache.invalidateDashboard().catch(() => {});
   } catch (err) {
     next(err);
   }

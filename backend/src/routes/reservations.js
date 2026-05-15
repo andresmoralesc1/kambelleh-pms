@@ -157,7 +157,7 @@ router.post('/', authenticate, async (req, res, next) => {
 
     res.status(201).json({ reservation });
 
-    await cache.invalidateDashboard();
+    cache.invalidateDashboard().catch(() => {});
 
     // Emit socket event for real-time sync
     const io = req.app.get('io');
@@ -244,7 +244,7 @@ router.put('/:id', authenticate, async (req, res, next) => {
       const io = req.app.get('io');
       if (io) io.emit('reservation:updated', reservation);
 
-      await cache.invalidateDashboard();
+      cache.invalidateDashboard().catch(() => {});
       return res.json({ reservation });
     }
 
@@ -256,7 +256,7 @@ router.put('/:id', authenticate, async (req, res, next) => {
 
     res.json({ reservation });
 
-    await cache.invalidateDashboard();
+    cache.invalidateDashboard().catch(() => {});
 
     const io = req.app.get('io');
     if (io) io.emit('reservation:updated', reservation);
@@ -305,7 +305,7 @@ router.patch('/:id/status', authenticate, async (req, res, next) => {
 
     res.json({ reservation: updated });
 
-    await cache.invalidateDashboard();
+    cache.invalidateDashboard().catch(() => {});
 
     // Emit socket event for real-time sync
     const io = req.app.get('io');

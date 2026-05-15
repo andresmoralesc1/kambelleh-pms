@@ -61,7 +61,7 @@ router.post('/', authenticate, authorize('ADMIN'), async (req, res, next) => {
     });
 
     res.status(201).json({ room });
-    await cache.invalidateDashboard();
+    cache.invalidateDashboard().catch(() => {});
 
     // Emit socket event for real-time sync
     const io = req.app.get('io');
@@ -84,7 +84,7 @@ router.put('/:id', authenticate, authorize('ADMIN'), async (req, res, next) => {
     });
 
     res.json({ room });
-    await cache.invalidateDashboard();
+    cache.invalidateDashboard().catch(() => {});
 
     // Emit socket event for real-time sync
     const io = req.app.get('io');
@@ -117,7 +117,7 @@ router.delete('/:id', authenticate, authorize('ADMIN'), async (req, res, next) =
 
     await prisma.room.delete({ where: { id: req.params.id } });
     res.json({ message: 'Habitación eliminada' });
-    await cache.invalidateDashboard();
+    cache.invalidateDashboard().catch(() => {});
 
     // Emit socket event for real-time sync
     const io = req.app.get('io');
