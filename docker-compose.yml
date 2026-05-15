@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -49,6 +47,7 @@ services:
       HOTEL_NAME: Kambelleh
       HOTEL_EMAIL: reservas@kambelleh.com
       HOTEL_PHONE: "+54 11 0000 0000"
+      HOTEL_ADDRESS: ${HOTEL_ADDRESS:-}
     depends_on:
       postgres:
         condition: service_healthy

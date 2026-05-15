@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { generateInvoicePdf } from './pdfInvoice.js';
+import { generateInvoicePdf } from '../utils/pdfInvoice.js';
 
 // Lazy initialization to avoid throwing at module load time when key is missing
 let resend = null;
