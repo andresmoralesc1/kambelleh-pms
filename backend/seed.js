@@ -1,12 +1,20 @@
 import { PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const prisma = new PrismaClient();
+
+// Default passwords for seed users — MUST be changed in production via env vars
+const SEED_ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || 'changeme_admin_secure';
+const SEED_MANAGER_PASSWORD = process.env.SEED_MANAGER_PASSWORD || 'changeme_manager_secure';
+const SEED_RECEPTION_PASSWORD = process.env.SEED_RECEPTION_PASSWORD || 'changeme_reception_secure';
 
 async function seed() {
   const existing = await prisma.user.findUnique({ where: { email: 'admin@kambelleh.com' } });
   if (!existing) {
-    const hashed = await bcrypt.hash('admin123', 10);
+    const hashed = await bcrypt.hash(SEED_ADMIN_PASSWORD, 12);
     await prisma.user.create({
       data: { name: 'Admin', email: 'admin@kambelleh.com', passwordHash: hashed, role: Role.ADMIN },
     });
@@ -18,7 +26,7 @@ async function seed() {
   // Create MANAGER user
   const managerExists = await prisma.user.findUnique({ where: { email: 'manager@kambelleh.com' } });
   if (!managerExists) {
-    const hashed = await bcrypt.hash('manager123', 10);
+    const hashed = await bcrypt.hash(SEED_MANAGER_PASSWORD, 12);
     await prisma.user.create({
       data: { name: 'Gerencia Kambelleh', email: 'manager@kambelleh.com', passwordHash: hashed, role: Role.MANAGER },
     });
@@ -30,7 +38,7 @@ async function seed() {
   // Create RECEPTIONIST user
   const receptionistExists = await prisma.user.findUnique({ where: { email: 'reception@kambelleh.com' } });
   if (!receptionistExists) {
-    const hashed = await bcrypt.hash('recepcion123', 10);
+    const hashed = await bcrypt.hash(SEED_RECEPTION_PASSWORD, 12);
     await prisma.user.create({
       data: { name: 'Recepción Kambelleh', email: 'reception@kambelleh.com', passwordHash: hashed, role: Role.RECEPCIONIST },
     });

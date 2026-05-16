@@ -95,9 +95,10 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      styleSrcElem: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https:"],
-      fontSrc: ["'self'"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
       connectSrc: ["'self'", process.env.FRONTEND_URL || 'http://localhost:5173'],
       frameSrc: ["'none'"],
       objectSrc: ["'none'"],
@@ -135,7 +136,8 @@ app.use(cors({
   origin: allowedOrigins.length > 1 ? allowedOrigins : allowedOrigins[0],
   credentials: true,
 }));
-app.use(morgan('dev'));
+const morganMode = process.env.NODE_ENV === 'production' ? 'combined' : 'dev';
+app.use(morgan(morganMode));
 app.use(cookieParser());
 app.use(express.json());
 
