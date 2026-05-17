@@ -6,7 +6,7 @@ import { logActivity } from '../utils/logActivity.js';
 const router = express.Router();
 
 // GET /api/guests
-router.get('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
+router.get('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIST'), async (req, res, next) => {
   try {
     const { search, page = 1, limit = 20 } = req.query;
     const pageNum = Math.max(1, parseInt(page));
@@ -19,6 +19,8 @@ router.get('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), asy
             { name: { contains: search, mode: 'insensitive' } },
             { email: { contains: search, mode: 'insensitive' } },
             { phone: { contains: search, mode: 'insensitive' } },
+            { documentNumber: { contains: search, mode: 'insensitive' } },
+            { nationality: { contains: search, mode: 'insensitive' } },
           ],
         }
       : {};
@@ -48,7 +50,7 @@ router.get('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), asy
 });
 
 // GET /api/guests/:id
-router.get('/:id', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
+router.get('/:id', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIST'), async (req, res, next) => {
   try {
     const guest = await prisma.guest.findUnique({
       where: { id: req.params.id },
@@ -69,14 +71,14 @@ router.get('/:id', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), 
 });
 
 // POST /api/guests
-router.post('/', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, res, next) => {
+router.post('/', authenticate, authorize('ADMIN', 'RECEPCIONIST'), async (req, res, next) => {
   try {
-    const { name, email, phone, documentType, documentNumber, nationality, birthDate, notes, vip, blacklist } = req.body;
+    const { name, email, phone, documentType, documentNumber, nationality, birthDate, notes, vip, blacklist, language } = req.body;
 
     if (!name) return res.status(400).json({ error: 'El nombre es obligatorio' });
 
     const guest = await prisma.guest.create({
-      data: { name, email, phone, documentType, documentNumber, nationality, birthDate, notes, vip, blacklist },
+      data: { name, email, phone, documentType, documentNumber, nationality, birthDate, notes, vip, blacklist, language },
     });
 
     res.status(201).json({ guest });
@@ -92,13 +94,13 @@ router.post('/', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, r
 });
 
 // PUT /api/guests/:id
-router.put('/:id', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, res, next) => {
+router.put('/:id', authenticate, authorize('ADMIN', 'RECEPCIONIST'), async (req, res, next) => {
   try {
-    const { name, email, phone, documentType, documentNumber, nationality, birthDate, notes, vip, blacklist } = req.body;
+    const { name, email, phone, documentType, documentNumber, nationality, birthDate, notes, vip, blacklist, language } = req.body;
 
     const guest = await prisma.guest.update({
       where: { id: req.params.id },
-      data: { name, email, phone, documentType, documentNumber, nationality, birthDate, notes, vip, blacklist },
+      data: { name, email, phone, documentType, documentNumber, nationality, birthDate, notes, vip, blacklist, language },
     });
 
     res.json({ guest });
@@ -110,7 +112,7 @@ router.put('/:id', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req,
 });
 
 // GET /api/guests/:id/history
-router.get('/:id/history', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
+router.get('/:id/history', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIST'), async (req, res, next) => {
   try {
     const reservations = await prisma.reservation.findMany({
       where: { guestId: req.params.id },
@@ -125,7 +127,7 @@ router.get('/:id/history', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIO
 });
 
 // DELETE /api/guests/:id
-router.delete('/:id', authenticate, authorize('ADMIN', 'RECEPTIONIST'), async (req, res, next) => {
+router.delete('/:id', authenticate, authorize('ADMIN', 'RECEPCIONIST'), async (req, res, next) => {
   try {
     // Atomic transaction: check existence and delete in one operation
     const [guest] = await prisma.$transaction([
