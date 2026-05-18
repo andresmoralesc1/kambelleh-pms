@@ -64,7 +64,7 @@ docker exec kambelleh-pms-backend-1 node prisma/seed.js
 open http://localhost:3000
 ```
 
-**Login por defecto:** `admin@kambelleh.com` / `admin123`
+**Login por defecto:** `admin@kambelleh.com` / (usar `SEED_ADMIN_PASSWORD` del `.env`)
 
 ---
 

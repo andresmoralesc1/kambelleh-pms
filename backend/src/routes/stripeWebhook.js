@@ -15,14 +15,18 @@ const getStripe = () => {
 
 // Stripe idempotency: track processed event IDs in Redis (24h window)
 // Prevents replay attacks where Stripe retries a webhook delivery
+// Redis fail-open: if Redis unavailable, return 503 to tell Stripe to retry later
+// This prevents duplicate payment processing when Redis is down
 async function isEventProcessed(eventId) {
   try {
     const redis = getRedis();
+    if (!redis) throw new Error('Redis not initialized');
     const key = `stripe:event:${eventId}`;
     const exists = await redis.exists(key);
     return exists === 1;
   } catch {
-    return false; // Redis unavailable — process event (fail open)
+    console.error('[stripe] Redis unavailable for idempotency check - rejecting event');
+    return 'RETRY'; // Special return value to trigger 503
   }
 }
 
@@ -70,8 +74,12 @@ async function stripeWebhook(req, res) {
     return res.status(400).send(`Error de webhook: ${err.message}`);
   }
 
-  // Replay protection: skip already-processed events
-  if (await isEventProcessed(event.id)) {
+  // Replay protection: skip already-processed events, or retry if Redis unavailable
+  const redisStatus = await isEventProcessed(event.id);
+  if (redisStatus === 'RETRY') {
+    return res.status(503).send('Payment provider temporarily unavailable. Please retry.');
+  }
+  if (redisStatus === true) {
     return res.json({ received: true, note: 'already processed' });
   }
   await markEventProcessed(event.id);

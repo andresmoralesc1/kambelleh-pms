@@ -6,6 +6,7 @@ services:
       POSTGRES_DB: kambelleh
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: postgres -c max_connections=100 -c shared_buffers=256MB -c effective_cache_size=512MB -c maintenance_work_mem=128MB -c checkpoint_completion_target=0.9
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -17,6 +18,7 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    command: redis-server --appendonly yes --appendfsync everysec --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
     healthcheck:

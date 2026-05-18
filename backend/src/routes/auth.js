@@ -145,10 +145,17 @@ router.get('/me', authenticate, async (req, res) => {
 // POST /api/auth/logout
 router.post('/logout', async (req, res) => {
   const refreshToken = req.cookies?.refreshToken;
-  if (refreshToken) {
-    await invalidateRefreshToken(refreshToken);
-  }
+
+  // Clear cookies FIRST to ensure client can't use them even if DB fails
   clearAuthCookies(res);
+
+  // Then invalidate token in DB (fire-and-forget, token already invalidated client-side)
+  if (refreshToken) {
+    invalidateRefreshToken(refreshToken).catch(err => {
+      console.error('[auth] Logout token invalidation failed:', err.message);
+    });
+  }
+
   res.json({ message: 'Sesión cerrada' });
 });
 
