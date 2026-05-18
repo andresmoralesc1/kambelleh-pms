@@ -18,6 +18,7 @@ export default function Analytics() {
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => observer.disconnect();
   }, []);
+  useEffect(() => { document.title = 'Analíticas — Kambelleh PMS'; }, []);
   const [months, setMonths] = useState(6);
   const { data: settingsData } = useSettings();
   const currency = settingsData?.currency || 'EUR';

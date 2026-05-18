@@ -51,7 +51,7 @@ function NoteModal({ reservationId, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="note-modal-title">
-      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md p-6">
+      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md p-6 modal-enter">
         <div className="flex items-center justify-between mb-4">
           <h2 id="note-modal-title" className="text-lg font-bold text-surface-900 dark:text-surface-100">Agregar nota interna</h2>
           <button onClick={onClose} aria-label="Cerrar" className="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400"><X className="w-5 h-5" /></button>
@@ -71,7 +71,7 @@ function NoteModal({ reservationId, onClose }) {
           <div>
             <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Nota *</label>
             <textarea value={content} onChange={e => setContent(e.target.value)} rows="4"
-              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
               required placeholder="Información relevante sobre la reserva..." />
           </div>
           <div className="flex gap-2 pt-2">
@@ -161,14 +161,16 @@ function ReservationModal({ reservation, onClose }) {
   const handleConfirm = () => { confirmState?.resolve?.(true); setConfirmState(null); };
   const handleCancel = () => { confirmState?.resolve?.(false); setConfirmState(null); };
 
+  useEffect(() => { document.title = 'Reservas — Kambelleh PMS'; }, []);
+
   const statusActions = {
     PENDING: [
       { label: 'Confirmar reserva', status: 'CONFIRMED', color: 'bg-blue-600 hover:bg-blue-700' },
-      { label: 'Cancelar reserva', status: 'CANCELLED', color: 'bg-red-50 hover:bg-red-100 text-red-700' },
+      { label: 'Cancelar reserva', status: 'CANCELLED', color: 'bg-red-600 hover:bg-red-700 text-white' },
     ],
     CONFIRMED: [
       { label: 'Realizar Check-in', status: 'CHECKED_IN', color: 'bg-emerald-600 hover:bg-emerald-700' },
-      { label: 'Cancelar reserva', status: 'CANCELLED', color: 'bg-red-50 hover:bg-red-100 text-red-700' },
+      { label: 'Cancelar reserva', status: 'CANCELLED', color: 'bg-red-600 hover:bg-red-700 text-white' },
     ],
     CHECKED_IN: [{ label: 'Realizar Check-out', status: 'CHECKED_OUT', color: 'bg-surface-700 hover:bg-surface-800' }],
   };
@@ -176,7 +178,7 @@ function ReservationModal({ reservation, onClose }) {
   return (
     <>
       <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="reservation-modal-title">
-        <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+        <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto modal-enter">
           <div className="flex items-center justify-between mb-4">
             <h2 id="reservation-modal-title" className="text-lg font-bold text-surface-900 dark:text-surface-100">Reserva #{reservation.id.slice(0, 8)}</h2>
             <button onClick={onClose} aria-label="Cerrar" className="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400"><X className="w-5 h-5" /></button>
@@ -293,7 +295,7 @@ function ReservationModal({ reservation, onClose }) {
       {showNoteModal && <NoteModal reservationId={reservation.id} onClose={() => setShowNoteModal(false)} />}
       {showCancelModal && (
         <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
-          <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
+          <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-sm p-6 modal-enter">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
                 <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
@@ -326,7 +328,7 @@ function ReservationModal({ reservation, onClose }) {
       {/* Generic confirm dialog */}
       {confirmState && (
         <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
-          <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
+          <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-sm p-6 modal-enter">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
                 <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
@@ -407,7 +409,7 @@ export default function Reservations() {
             <Download className="w-4 h-4" aria-hidden="true" /> Exportar CSV
           </button>
           <Link to="/reservations/new"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 hover:shadow-md hover:shadow-primary-500/20 text-white text-sm font-medium active:scale-[0.97] transition-all duration-150"
             aria-label="Crear nueva reserva">
             <Plus className="w-4 h-4" aria-hidden="true" /> Nueva reserva
           </Link>
@@ -421,7 +423,7 @@ export default function Reservations() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500 dark:text-surface-400" aria-hidden="true" />
           <input id="reservation-search" value={search} onChange={handleSearch}
             placeholder="Buscar por huésped o habitación..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow" />
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow" />
         </div>
         <div className="flex gap-2 flex-wrap" role="group" aria-label="Filtrar por estado">
           {statusFilters.map(s => (
@@ -469,7 +471,7 @@ export default function Reservations() {
               </thead>
               <tbody>
                 {filtered.map(r => (
-                  <tr key={r.id} className="border-b border-surface-100 dark:border-surface-700 last:border-0 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">
+                  <tr key={r.id} className="border-b border-surface-100 dark:border-surface-700 last:border-0 hover:bg-surface-50 dark:hover:bg-surface-700 transition-all duration-150">
                     <td className="px-5 py-4">
                       <p className="font-medium text-surface-900 dark:text-surface-100 text-sm">{r.guest?.name}</p>
                       <p className="text-xs text-surface-500 dark:text-surface-400">{r.guest?.email}</p>
@@ -490,7 +492,7 @@ export default function Reservations() {
                     <td className="px-5 py-4 text-right">
                       <button onClick={() => setSelected(r)}
                         aria-label={`Ver detalles de reserva de ${r.guest?.name}`}
-                        className="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 transition-colors">
+                        className="p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 active:scale-[0.95] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
                         <Eye className="w-4 h-4" />
                       </button>
                     </td>

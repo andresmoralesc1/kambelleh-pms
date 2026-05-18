@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SprayCan, CheckCircle, AlertCircle, Clock, Wrench, ChevronDown, ChevronUp, User } from 'lucide-react';
 import { useRooms, useRoomCleaningLogs, useUpdateRoomCleaningStatus, useCreateCleaningLog, useUsers } from '../hooks/useQueries';
 import { formatDateShort } from '../utils/currency';
@@ -85,6 +85,7 @@ function CleaningHistoryModal({ roomId, roomNumber, onClose }) {
 }
 
 export default function Housekeeping() {
+  useEffect(() => { document.title = 'Limpieza — Kambelleh PMS'; }, []);
   const [filter, setFilter] = useState('ALL');
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [expandedRoom, setExpandedRoom] = useState(null);

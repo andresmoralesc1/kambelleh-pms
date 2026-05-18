@@ -156,6 +156,7 @@ function CalendarSkeleton() {
 const VISIBLE_RESERVATIONS = 3;
 
 export default function Calendar() {
+  useEffect(() => { document.title = 'Calendario — Kambelleh PMS'; }, []);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [roomFilter, setRoomFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -379,7 +380,7 @@ export default function Calendar() {
                         <Link
                           key={r.id}
                           to={`/reservations?id=${r.id}`}
-                          className={`group relative flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded truncate text-white no-underline transition-opacity hover:opacity-80 ${
+                          className={`group relative flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded truncate text-white no-underline transition-all duration-150 hover:opacity-80 hover:scale-[1.02] ${
                             isCancelled ? 'bg-surface-400 dark:bg-surface-600 line-through' :
                             isCheckIn ? 'bg-emerald-500' : isCheckOut ? 'bg-amber-500' : 'bg-primary-500 dark:bg-primary-600'
                           }`}

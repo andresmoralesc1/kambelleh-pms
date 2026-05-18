@@ -6,7 +6,7 @@ const router = Router();
 
 // GET /api/notes?guestId=X -> lista notas de un huésped
 // GET /api/notes?reservationId=X -> lista notas de una reserva
-router.get('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
+router.get('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIST'), async (req, res, next) => {
   const { guestId, reservationId } = req.query;
   try {
     const where = {};
@@ -23,7 +23,7 @@ router.get('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), asy
 });
 
 // POST /api/notes -> crear nota { content, authorName, guestId?, reservationId? }
-router.post('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
+router.post('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIST'), async (req, res, next) => {
   const { content, guestId, reservationId } = req.body;
   if (!content) {
     return res.status(400).json({ error: 'Contenido es requerido' });
@@ -46,7 +46,7 @@ router.post('/', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), as
 });
 
 // DELETE /api/notes/:id -> eliminar nota
-router.delete('/:id', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPTIONIST'), async (req, res, next) => {
+router.delete('/:id', authenticate, authorize('ADMIN', 'MANAGER', 'RECEPCIONIST'), async (req, res, next) => {
   const { id } = req.params;
   try {
     await prisma.internalNote.delete({ where: { id } });

@@ -47,7 +47,7 @@ const updateRoom = useUpdateRoom();
 
   return (
     <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="room-modal-title">
-      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto modal-enter">
         <h2 id="room-modal-title" className="text-lg font-bold text-surface-900 dark:text-surface-100 mb-4">
           {room ? 'Editar' : 'Nueva'} habitación
         </h2>
@@ -191,6 +191,8 @@ export default function Rooms() {
   const handleConfirm = () => { confirmState?.resolve?.(true); setConfirmState(null); };
   const handleCancel = () => { confirmState?.resolve?.(false); setConfirmState(null); };
 
+  useEffect(() => { document.title = 'Habitaciones — Kambelleh PMS'; }, []);
+
   const statusFilters = ['ALL', 'AVAILABLE', 'OCCUPIED', 'MAINTENANCE'];
   const statusLabels = { ALL: 'Todas', AVAILABLE: 'Disponibles', OCCUPIED: 'Ocupadas', MAINTENANCE: 'Mantenimiento' };
 
@@ -209,7 +211,7 @@ export default function Rooms() {
             <Download className="w-4 h-4" aria-hidden="true" /> Exportar CSV
           </button>
           <button onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 hover:shadow-md hover:shadow-primary-500/20 text-white text-sm font-medium active:scale-[0.97] transition-all duration-150"
             aria-label="Crear nueva habitación">
             <Plus className="w-4 h-4" aria-hidden="true" /> Nueva habitación
           </button>
@@ -254,7 +256,7 @@ export default function Rooms() {
           </p>
           {filter === 'ALL' && (
             <button onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors">
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 hover:shadow-md hover:shadow-primary-500/20 text-white text-sm font-medium active:scale-[0.97] transition-all duration-150">
               <Plus className="w-4 h-4" /> Crear habitación
             </button>
           )}
@@ -266,7 +268,7 @@ export default function Rooms() {
             const status = statusConfig[room.status] || statusConfig.AVAILABLE;
             return (
               <div key={room.id}
-                className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 p-5 hover:shadow-md transition-shadow">
+                className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 p-5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 hover:shadow-lg hover:shadow-primary-500/10">
                 {/* Top row */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -310,12 +312,12 @@ export default function Rooms() {
                   <div className="flex gap-1">
                     <button onClick={() => setShowModal(room)}
                       aria-label={`Editar habitación ${room.number}`}
-                      className="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 transition-colors">
+                      className="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 active:scale-[0.95] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDelete(room)}
                       aria-label={`Eliminar habitación ${room.number}`}
-                      className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                      className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 active:scale-[0.95] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -340,8 +342,8 @@ export default function Rooms() {
             </div>
             <p className="text-sm text-surface-600 dark:text-surface-400 mb-6">{confirmState.message}</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-400 text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">Cancelar</button>
-              <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors">{confirmState.confirmLabel}</button>
+              <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-400 text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">Cancelar</button>
+              <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">{confirmState.confirmLabel}</button>
             </div>
           </div>
         </div>

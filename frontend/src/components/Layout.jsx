@@ -77,7 +77,7 @@ export default function Layout() {
           {/* Mobile close button */}
           <button
             onClick={() => setSidebarOpen(false)}
-            className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-600 lg:hidden"
+            className="p-1.5 rounded-lg hover:bg-surface-100 text-surface-600 lg:hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
             aria-label="Cerrar menú de navegación"
           >
             <X className="w-5 h-5" />
@@ -93,10 +93,10 @@ export default function Layout() {
               onClick={() => setSidebarOpen(false)}
               onMouseEnter={() => handleNavMouseEnter(to)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                    : 'text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700'
+                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border-l-2 border-primary-500 pl-[10px]'
+                    : 'text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 hover:pl-[10px]'
                 }`
               }
             >
@@ -118,14 +118,14 @@ export default function Layout() {
             </div>
             <button
               onClick={toggle}
-              className="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400 transition-colors"
+              className="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400 transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               aria-label={dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
             >
               {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
             <button
               onClick={handleLogout}
-              className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/30 text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+              className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/30 text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 transition-colors focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
               aria-label="Cerrar sesión"
             >
               <LogOut className="w-4 h-4" />
@@ -140,7 +140,7 @@ export default function Layout() {
         <div className="lg:hidden flex items-center gap-3 p-4 bg-white dark:bg-surface-800 border-b border-surface-200 dark:border-surface-700">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400"
+            className="p-2 rounded-xl hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
             aria-label="Abrir menú de navegación"
           >
             <Menu className="w-5 h-5" />

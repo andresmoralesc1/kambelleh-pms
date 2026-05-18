@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link2, RefreshCw, Wifi, WifiOff, ExternalLink, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from '../components/ToastProvider';
 import {
@@ -357,6 +357,7 @@ function PlaceholderCard({ name, comingSoon = true }) {
 }
 
 export default function ChannelManager() {
+  useEffect(() => { document.title = 'Canales — Kambelleh PMS'; }, []);
   return (
     <div className="p-6 space-y-6 bg-surface-50 dark:bg-surface-900 min-h-screen" role="main">
       {/* Header */}

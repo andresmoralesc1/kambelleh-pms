@@ -39,33 +39,31 @@ export async function validateCsrfToken(userId, token) {
   }
 }
 
+// CSRF validation without authentication check
+// authenticate middleware handles user verification
 export async function csrfMiddleware(req, res, next) {
   // Only apply to state-changing methods
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
     return next();
   }
 
-  // Skip for public routes (login, register)
-  const publicPaths = ['/api/auth/login', '/api/auth/register', '/api/auth/refresh'];
-  if (publicPaths.some(p => req.path.startsWith(p))) {
+  // Skip for public routes
+  const publicPaths = ['/login', '/register', '/refresh', '/me'];
+  if (publicPaths.some(p => req.path === p || req.path.startsWith(p))) {
     return next();
   }
 
-  // Require user to be authenticated
+  // Skip if no user yet (authenticate middleware will handle that)
   if (!req.user) {
-    return res.status(401).json({ error: 'No autenticado' });
+    return next();
   }
 
   const token = req.headers['x-csrf-token'];
-  validateCsrfToken(req.user.id, token).then(valid => {
-    if (!valid) {
-      return res.status(403).json({ error: 'Token CSRF inválido o expirado' });
-    }
-    next();
-  }).catch(() => {
-    // Redis error — fail open (continue without CSRF validation)
-    next();
-  });
+  const valid = await validateCsrfToken(req.user.id, token);
+  if (!valid) {
+    return res.status(403).json({ error: 'Token CSRF inválido o expirado' });
+  }
+  next();
 }
 
 export function cleanupExpiredTokens() {

@@ -31,6 +31,7 @@ function StepIndicator({ current }) {
 }
 
 export default function BookingPage() {
+  useEffect(() => { document.title = 'Reserva — Kambelleh PMS'; }, []);
   const [step, setStep] = useState(1);
   const [checkIn, setCheckIn] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [checkOut, setCheckOut] = useState(format(addDays(new Date(), 1), 'yyyy-MM-dd'));
@@ -174,7 +175,7 @@ export default function BookingPage() {
                     onChange={(e) => setCheckIn(e.target.value)}
                     min={format(new Date(), 'yyyy-MM-dd')}
                     required
-                    className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:shadow-md focus:shadow-primary-500/20"
                   />
                 </div>
                 <div>
@@ -186,7 +187,7 @@ export default function BookingPage() {
                     onChange={(e) => setCheckOut(e.target.value)}
                     min={format(addDays(new Date(checkIn), 1), 'yyyy-MM-dd')}
                     required
-                    className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:shadow-md focus:shadow-primary-500/20"
                   />
                 </div>
               </div>
@@ -197,7 +198,7 @@ export default function BookingPage() {
                   id="guests"
                   value={guests}
                   onChange={(e) => setGuests(Number(e.target.value))}
-                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:shadow-md focus:shadow-primary-500/20"
                 >
                   {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>{n} adulto{n !== 1 ? 's' : ''}</option>)}
                 </select>
@@ -312,7 +313,7 @@ export default function BookingPage() {
                   required
                   minLength={2}
                   placeholder="Juan Pérez"
-                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:shadow-md focus:shadow-primary-500/20"
                 />
               </div>
 
@@ -325,7 +326,7 @@ export default function BookingPage() {
                   onChange={e => setGuestForm(f => ({ ...f, email: e.target.value }))}
                   required
                   placeholder="juan@email.com"
-                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:shadow-md focus:shadow-primary-500/20"
                 />
               </div>
 
@@ -337,7 +338,7 @@ export default function BookingPage() {
                   value={guestForm.phone}
                   onChange={e => setGuestForm(f => ({ ...f, phone: e.target.value }))}
                   placeholder="+54 11 1234 5678"
-                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:shadow-md focus:shadow-primary-500/20"
                 />
               </div>
 
@@ -350,7 +351,7 @@ export default function BookingPage() {
                   rows={2}
                   maxLength={500}
                   placeholder="Ej: Llegada después de las 20h, preferencia de piso alto..."
-                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:shadow-md focus:shadow-primary-500/20"
                 />
               </div>
 

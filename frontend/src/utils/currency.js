@@ -1,25 +1,43 @@
 /**
- * Currency formatting utilities for Kambelleh PMS
- * Site: kambelleh.com - Argentina
+ * Supported currencies
  */
+export const CURRENCIES = {
+  ARS: { code: 'ARS', locale: 'es-AR', symbol: '$', name: 'Peso Argentino' },
+  COP: { code: 'COP', locale: 'es-CO', symbol: '$', name: 'Peso Colombiano' },
+  USD: { code: 'USD', locale: 'en-US', symbol: 'US$', name: 'Dólar Estadounidense' },
+  EUR: { code: 'EUR', locale: 'de-DE', symbol: '€', name: 'Euro' },
+};
 
 /**
- * Format a number as Argentine Pesos (ARS)
+ * Format a number as currency
  * @param {number|string} amount - Amount to format
+ * @param {string} currencyCode - Currency code (ARS, COP, USD, EUR)
  * @param {object} options - Intl.NumberFormat options
- * @returns {string} Formatted string like "$45.000,00"
+ * @returns {string} Formatted string
  */
-export function formatCurrency(amount, options = {}) {
+export function formatCurrency(amount, currencyCode = 'ARS', options = {}) {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount;
   if (isNaN(num)) return '$0,00';
 
-  return new Intl.NumberFormat('es-AR', {
+  const config = CURRENCIES[currencyCode] || CURRENCIES.ARS;
+
+  return new Intl.NumberFormat(config.locale, {
     style: 'currency',
-    currency: 'ARS',
+    currency: config.code,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
     ...options,
   }).format(num);
+}
+
+/**
+ * Legacy function for backward compatibility - defaults to ARS
+ * @param {number|string} amount
+ * @param {object} options
+ * @returns {string}
+ */
+export function formatCurrencyLegacy(amount, options = {}) {
+  return formatCurrency(amount, 'ARS', options);
 }
 
 /**

@@ -87,7 +87,7 @@ function ToastContainer({ toasts, onRemove }) {
             <p className="text-sm font-medium flex-1">{t.message}</p>
             <button
               onClick={() => onRemove(t.id)}
-              className="p-0.5 rounded hover:bg-black/10 transition-colors flex-shrink-0"
+              className="p-0.5 rounded hover:bg-black/10 transition-colors flex-shrink-0 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
               aria-label="Cerrar notificación"
             >
               <X className="w-4 h-4" />

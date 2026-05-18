@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Search, Pencil, X, Users, Trash2, Mail, Shield, Calendar } from 'lucide-react';
 import { useUsers, useCreateUser, useUpdateUser, useDeleteUser, useChangePassword } from '../hooks/useQueries';
 import { useToast } from '../components/ToastProvider';
@@ -71,7 +71,7 @@ function UserModal({ user, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="user-modal-title">
-      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto modal-enter">
         <div className="flex items-center justify-between mb-4">
           <h2 id="user-modal-title" className="text-lg font-bold text-surface-900 dark:text-surface-100">{isEditing ? 'Editar' : 'Nuevo'} usuario</h2>
           <button onClick={onClose} aria-label="Cerrar" className="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400"><X className="w-5 h-5" /></button>
@@ -85,19 +85,19 @@ function UserModal({ user, onClose }) {
           <div>
             <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Nombre completo *</label>
             <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
               required placeholder="María García López" />
           </div>
           <div>
             <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Email *</label>
             <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
               required placeholder="maria@kambelleh.com" />
           </div>
           <div>
             <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Rol *</label>
             <select value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}
-              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow">
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow">
               <option value="ADMIN">Administrador</option>
               <option value="MANAGER">Gerencia</option>
               <option value="RECEPTIONIST">Recepción</option>
@@ -108,7 +108,7 @@ function UserModal({ user, onClose }) {
               Contraseña {isEditing && <span className="text-surface-400 dark:text-surface-500">(solo si deseas cambiarla)</span>}
             </label>
             <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
-              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
               placeholder={isEditing ? '••••••••' : 'Mínimo 6 caracteres'} />
           </div>
           <div className="flex gap-2 pt-2">
@@ -159,7 +159,7 @@ function PasswordModal({ user, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="password-modal-title">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 modal-enter">
         <div className="flex items-center justify-between mb-4">
           <h2 id="password-modal-title" className="text-lg font-bold text-surface-900">Cambiar contraseña</h2>
           <button onClick={onClose} aria-label="Cerrar" className="p-1.5 rounded-lg hover:bg-surface-100"><X className="w-5 h-5" /></button>
@@ -174,13 +174,13 @@ function PasswordModal({ user, onClose }) {
           <div>
             <label className="block text-xs font-medium text-surface-700 mb-1">Nueva contraseña *</label>
             <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
               required placeholder="Mínimo 6 caracteres" />
           </div>
           <div>
             <label className="block text-xs font-medium text-surface-700 mb-1">Confirmar contraseña *</label>
             <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
               required placeholder="Repite la contraseña" />
           </div>
           <div className="flex gap-2 pt-2">
@@ -254,6 +254,7 @@ function UserCard({ user, onEdit, onDelete, onChangePassword }) {
 }
 
 export default function Staff() {
+  useEffect(() => { document.title = 'Personal — Kambelleh PMS'; }, []);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -313,7 +314,7 @@ export default function Staff() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500 dark:text-surface-400" aria-hidden="true" />
         <input id="user-search" value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Buscar por nombre o email..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-sm text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-shadow" />
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-sm text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow" />
       </div>
 
       {/* Loading skeleton */}
@@ -351,7 +352,7 @@ export default function Staff() {
       {passwordUser && <PasswordModal user={passwordUser} onClose={() => setPasswordUser(null)} />}
       {confirmState && (
         <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
-          <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
+          <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-sm p-6 modal-enter">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
                 <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
@@ -362,8 +363,8 @@ export default function Staff() {
             </div>
             <p className="text-sm text-surface-600 dark:text-surface-400 mb-6">{confirmState.message}</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-400 text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">Cancelar</button>
-              <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors">{confirmState.confirmLabel}</button>
+              <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-400 text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-700 active:scale-[0.97] transition-all duration-150">Cancelar</button>
+              <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 hover:shadow-md hover:shadow-red-500/20 text-white text-sm font-medium active:scale-[0.97] transition-all duration-150">{confirmState.confirmLabel}</button>
             </div>
           </div>
         </div>

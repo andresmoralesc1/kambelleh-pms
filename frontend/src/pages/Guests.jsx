@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Search, Phone, Mail, MapPin, X, Users, Trash2, Download, StickyNote } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Search, Phone, Mail, MapPin, X, Users, Trash2, Download, StickyNote, Pencil } from 'lucide-react';
 import { useGuests, useCreateGuest, useUpdateGuest, useDeleteGuest, useNotes, useCreateNote, useDeleteNote } from '../hooks/useQueries';
 import { useExportGuests } from '../hooks/useExport';
 import { useToast } from '../components/ToastProvider';
@@ -10,10 +10,10 @@ function GuestModal({ guest, onClose }) {
   const [form, setForm] = useState(guest ? {
     name: guest.name || '', email: guest.email || '', phone: guest.phone || '',
     documentType: guest.documentType || '', documentNumber: guest.documentNumber || '',
-    nationality: guest.nationality || '', notes: guest.notes || '',
+    nationality: guest.nationality || '', birthDate: guest.birthDate || '', notes: guest.notes || '',
     vip: guest.vip ?? false, blacklist: guest.blacklist ?? false,
   } : {
-    name: '', email: '', phone: '', documentType: '', documentNumber: '', nationality: '', notes: '',
+    name: '', email: '', phone: '', documentType: '', documentNumber: '', nationality: '', birthDate: '', notes: '',
     vip: false, blacklist: false,
   });
   const [error, setError] = useState('');
@@ -25,15 +25,18 @@ function GuestModal({ guest, onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    // Filter out empty birthDate to avoid Prisma error
+    const dataToSend = { ...form, birthDate: form.birthDate || null };
     try {
       if (isEditing) {
-        await updateGuest.mutateAsync({ id: guest.id, data: form });
+        await updateGuest.mutateAsync({ id: guest.id, data: dataToSend });
         toast.success('Huésped actualizado correctamente');
+        onClose();
       } else {
-        await createGuest.mutateAsync(form);
+        await createGuest.mutateAsync(dataToSend);
         toast.success('Huésped creado correctamente');
+        onClose();
       }
-      onClose();
     } catch (err) {
       setError(err.response?.data?.error || 'Error al guardar el huésped');
       toast.error(err.response?.data?.error || 'Error al guardar el huésped');
@@ -42,7 +45,7 @@ function GuestModal({ guest, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="guest-modal-title">
-      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto modal-enter">
         <div className="flex items-center justify-between mb-4">
           <h2 id="guest-modal-title" className="text-lg font-bold text-surface-900 dark:text-surface-100">{isEditing ? 'Editar' : 'Nuevo'} huésped</h2>
           <button onClick={onClose} aria-label="Cerrar" className="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700"><X className="w-5 h-5 text-surface-600 dark:text-surface-400" /></button>
@@ -56,20 +59,20 @@ function GuestModal({ guest, onClose }) {
           <div>
             <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Nombre completo *</label>
             <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
               required placeholder="María García López" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Email</label>
               <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+                className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
                 placeholder="maria@email.com" />
             </div>
             <div>
               <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Teléfono</label>
               <input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
-                className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+                className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
                 placeholder="+34 600 000 000" />
             </div>
           </div>
@@ -77,7 +80,7 @@ function GuestModal({ guest, onClose }) {
             <div>
               <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Tipo documento</label>
               <select value={form.documentType} onChange={e => setForm({ ...form, documentType: e.target.value })}
-                className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow">
+                className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow">
                 <option value="">Seleccionar</option>
                 <option value="DNI">DNI</option>
                 <option value="PASSPORT">Pasaporte</option>
@@ -87,20 +90,20 @@ function GuestModal({ guest, onClose }) {
             <div>
               <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Nº Documento</label>
               <input value={form.documentNumber} onChange={e => setForm({ ...form, documentNumber: e.target.value })}
-                className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+                className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
                 placeholder="12345678A" />
             </div>
           </div>
           <div>
             <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Nacionalidad</label>
             <input value={form.nationality} onChange={e => setForm({ ...form, nationality: e.target.value })}
-              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
               placeholder="Española" />
           </div>
           <div>
             <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Notas</label>
             <textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows="2"
-              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
               placeholder="Alergias, preferencias, información relevante..." />
           </div>
           <div className="flex items-center gap-4">
@@ -153,7 +156,7 @@ function NoteModal({ guestId, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="note-modal-title">
-      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md p-6">
+      <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md p-6 modal-enter">
         <div className="flex items-center justify-between mb-4">
           <h2 id="note-modal-title" className="text-lg font-bold text-surface-900 dark:text-surface-100">Agregar nota interna</h2>
           <button onClick={onClose} aria-label="Cerrar" className="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700"><X className="w-5 h-5 text-surface-600 dark:text-surface-400" /></button>
@@ -167,13 +170,13 @@ function NoteModal({ guestId, onClose }) {
           <div>
             <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Tu nombre *</label>
             <input value={authorName} onChange={e => setAuthorName(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
               required placeholder="Recepción" />
           </div>
           <div>
             <label className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Nota *</label>
             <textarea value={content} onChange={e => setContent(e.target.value)} rows="4"
-              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+              className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
               required placeholder="Información relevante sobre el huésped..." />
           </div>
           <div className="flex gap-2 pt-2">
@@ -192,7 +195,7 @@ function NoteModal({ guestId, onClose }) {
   );
 }
 
-function GuestCard({ guest, onDelete }) {
+function GuestCard({ guest, onDelete, onEdit }) {
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [confirmState, setConfirmState] = useState(null);
   const { data: notesData, isLoading: notesLoading } = useNotes({ guestId: guest.id });
@@ -242,11 +245,18 @@ function GuestCard({ guest, onDelete }) {
               <p className="text-xs text-surface-500 dark:text-surface-400">{totalReservations} reserva{totalReservations !== 1 ? 's' : ''}</p>
             </div>
           </div>
-          <button onClick={() => onDelete(guest)}
-            aria-label={`Eliminar huésped ${guest.name}`}
-            className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
-            <Trash2 className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button onClick={() => onEdit(guest)}
+              aria-label={`Editar huésped ${guest.name}`}
+              className="p-1.5 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 text-surface-500 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 active:scale-[0.95] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
+              <Pencil className="w-4 h-4" />
+            </button>
+            <button onClick={() => onDelete(guest)}
+              aria-label={`Eliminar huésped ${guest.name}`}
+              className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 active:scale-[0.95] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         <div className="space-y-1.5 text-sm text-surface-600 dark:text-surface-400">
@@ -322,7 +332,7 @@ function GuestCard({ guest, onDelete }) {
       {showNoteModal && <NoteModal guestId={guest.id} onClose={() => setShowNoteModal(false)} />}
       {confirmState && (
         <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
-          <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
+          <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-sm p-6 modal-enter">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
                 <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
@@ -334,7 +344,7 @@ function GuestCard({ guest, onDelete }) {
             <p className="text-sm text-surface-600 dark:text-surface-400 mb-6">{confirmState.message}</p>
             <div className="flex gap-3 justify-end">
               <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">Cancelar</button>
-              <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white text-sm font-medium transition-colors">{confirmState.confirmLabel}</button>
+              <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 hover:shadow-md hover:shadow-red-500/20 text-white text-sm font-medium active:scale-[0.97] transition-all duration-150">{confirmState.confirmLabel}</button>
             </div>
           </div>
         </div>
@@ -344,8 +354,9 @@ function GuestCard({ guest, onDelete }) {
 }
 
 export default function Guests() {
-  const [search, setSearch] = useState('');
+  useEffect(() => { document.title = 'Huéspedes — Kambelleh PMS'; }, []);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingGuest, setEditingGuest] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
@@ -413,7 +424,7 @@ export default function Guests() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500 dark:text-surface-400" aria-hidden="true" />
         <input id="guest-search" value={search} onChange={e => handleSearch(e.target.value)}
           placeholder="Buscar por nombre, email o teléfono..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow" />
+          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow" />
       </div>
 
       {/* Loading skeleton */}
@@ -440,7 +451,7 @@ export default function Guests() {
         <>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {guests.map(guest => (
-              <GuestCard key={guest.id} guest={guest} onDelete={handleDelete} />
+              <GuestCard key={guest.id} guest={guest} onDelete={handleDelete} onEdit={(g) => { setEditingGuest(g); setShowModal(true); }} />
             ))}
           </div>
           {totalPages > 1 && (
@@ -470,7 +481,7 @@ export default function Guests() {
       {showModal && <GuestModal guest={editingGuest} onClose={() => { setShowModal(false); setEditingGuest(null); }} />}
       {confirmState && (
         <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true">
-          <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
+          <div className="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-sm p-6 modal-enter">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center">
                 <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
@@ -482,7 +493,7 @@ export default function Guests() {
             <p className="text-sm text-surface-600 dark:text-surface-400 mb-6">{confirmState.message}</p>
             <div className="flex gap-3 justify-end">
               <button onClick={handleCancel} className="px-4 py-2 rounded-xl border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">Cancelar</button>
-              <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 text-white text-sm font-medium transition-colors">{confirmState.confirmLabel}</button>
+              <button onClick={handleConfirm} className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600 hover:shadow-md hover:shadow-red-500/20 text-white text-sm font-medium active:scale-[0.97] transition-all duration-150">{confirmState.confirmLabel}</button>
             </div>
           </div>
         </div>

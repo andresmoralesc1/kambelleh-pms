@@ -35,7 +35,7 @@ function StatCard({ icon: Icon, label, value, sub, color = 'primary' }) {
     blue: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300',
   };
   return (
-    <div className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 p-5 shadow-sm">
+    <div className="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 p-5 shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 hover:shadow-lg hover:shadow-primary-500/10">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide">{label}</p>
@@ -119,6 +119,10 @@ export default function Dashboard() {
   const greeting = getGreeting();
   const GreetingIcon = greeting.icon;
 
+  useEffect(() => {
+    document.title = 'Dashboard — Kambelleh PMS';
+  }, []);
+
   // Listen for reservation:updated to refresh dashboard stats in real time
   useEffect(() => {
     if (!socket) return;
@@ -162,7 +166,7 @@ export default function Dashboard() {
             <Download className="w-4 h-4" aria-hidden="true" /> Exportar mes
           </button>
           <Link to="/reservations/new"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-700 hover:shadow-md hover:shadow-primary-500/20 text-white text-sm font-medium active:scale-[0.97] transition-all duration-150"
             aria-label="Crear nueva reserva">
             + Nueva reserva
           </Link>
@@ -235,7 +239,7 @@ export default function Dashboard() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3" role="list" aria-label="Próximas reservas">
               {stats.upcomingArrivals.map((r) => (
                 <div key={r.id}
-                  className="flex items-center gap-3 p-3 rounded-xl border border-surface-200 dark:border-surface-700 hover:border-surface-300 dark:hover:border-surface-600 transition-colors"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-surface-200 dark:border-surface-700 hover:border-surface-300 dark:hover:border-surface-600 hover:scale-[1.01] active:scale-[0.99] transition-all duration-150"
                   role="listitem">
                   <div className="w-9 h-9 rounded-full bg-surface-100 dark:bg-surface-700 flex items-center justify-center text-sm font-semibold text-surface-600 dark:text-surface-300 flex-shrink-0" aria-hidden="true">
                     {r.guest.name.charAt(0)}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 export function useConfirm() {
@@ -23,11 +23,18 @@ export function useConfirm() {
 
 export function ConfirmDialog({ confirmState, onConfirm, onCancel }) {
   if (!confirmState) return null;
+  const dialogRef = useRef(null);
+  useEffect(() => {
+    const previousFocus = document.activeElement;
+    const firstButton = dialogRef.current?.querySelector('button');
+    firstButton?.focus();
+    return () => previousFocus?.focus();
+  }, [confirmState]);
   const { title = '¿Estás seguro?', message = 'Esta acción no se puede deshacer.', confirmLabel = 'Eliminar', confirmVariant = 'danger' } = confirmState;
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[90] p-4" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+      <div ref={dialogRef} className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 modal-enter" tabIndex="-1">
         <div className="flex items-center gap-3 mb-4">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center ${confirmVariant === 'danger' ? 'bg-red-100' : 'bg-primary-100'}`}>
             <AlertTriangle className={`w-5 h-5 ${confirmVariant === 'danger' ? 'text-red-600' : 'text-primary-600'}`} />
@@ -37,14 +44,14 @@ export function ConfirmDialog({ confirmState, onConfirm, onCancel }) {
         <p className="text-sm text-surface-600 mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
           <button onClick={onCancel}
-            className="px-4 py-2 rounded-xl border border-surface-200 text-surface-700 text-sm font-medium hover:bg-surface-50 transition-colors">
+            className="px-4 py-2 rounded-xl border border-surface-200 text-surface-700 text-sm font-medium hover:bg-surface-50 active:scale-[0.97] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2">
             Cancelar
           </button>
           <button onClick={onConfirm}
-            className={`px-4 py-2 rounded-xl text-white text-sm font-medium transition-colors ${
+            className={`px-4 py-2 rounded-xl text-white text-sm font-medium active:scale-[0.97] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-offset-2 ${
               confirmVariant === 'danger'
-                ? 'bg-red-600 hover:bg-red-700'
-                : 'bg-primary-600 hover:bg-primary-700'
+                ? 'bg-red-600 hover:bg-red-700 hover:shadow-md hover:shadow-red-500/20 focus-visible:ring-red-500'
+                : 'bg-primary-600 hover:bg-primary-700 hover:shadow-md hover:shadow-primary-500/20 focus-visible:ring-primary-500'
             }`}>
             {confirmLabel}
           </button>

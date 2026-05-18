@@ -12,6 +12,7 @@ const typeLabels = { PRIVATE: 'Privada', SHARED: 'Compartida', DORM: 'Dormitorio
 
 export default function NewReservation() {
   const navigate = useNavigate();
+  useEffect(() => { document.title = 'Nueva Reserva — Kambelleh PMS'; }, []);
   const [step, setStep] = useState(1);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [checkIn, setCheckIn] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -145,13 +146,13 @@ export default function NewReservation() {
                 <label htmlFor="check-in" className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Check-in *</label>
                 <input id="check-in" type="date" value={checkIn}
                   onChange={e => { setCheckIn(e.target.value); if (new Date(e.target.value) >= new Date(checkOut)) setCheckOut(e.target.value); }}
-                  className="w-full px-4 py-3 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+                  className="w-full px-4 py-3 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
                   aria-required="true" />
               </div>
               <div>
                 <label htmlFor="check-out" className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Check-out *</label>
                 <input id="check-out" type="date" value={checkOut} onChange={e => setCheckOut(e.target.value)} min={checkIn}
-                  className="w-full px-4 py-3 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+                  className="w-full px-4 py-3 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
                   aria-required="true" />
               </div>
             </div>
@@ -229,7 +230,7 @@ export default function NewReservation() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-500 dark:text-surface-400" aria-hidden="true" />
                 <input id="guest-search" value={guestSearch} onChange={e => setGuestSearch(e.target.value)}
                   placeholder="Nombre, email o teléfono..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow" />
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow" />
               </div>
 
               {guestsLoading ? (
@@ -280,13 +281,13 @@ export default function NewReservation() {
                   <div>
                     <label htmlFor="new-guest-email" className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Email</label>
                     <input id="new-guest-email" value={guestForm.email} onChange={e => setGuestForm({ ...guestForm, email: e.target.value })}
-                      className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+                      className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
                       placeholder="email@ejemplo.com" />
                   </div>
                   <div>
                     <label htmlFor="new-guest-phone" className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1">Teléfono</label>
                     <input id="new-guest-phone" value={guestForm.phone} onChange={e => setGuestForm({ ...guestForm, phone: e.target.value })}
-                      className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+                      className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
                       placeholder="+34 600 000 000" />
                   </div>
                 </div>
@@ -314,7 +315,7 @@ export default function NewReservation() {
               <div>
                 <label htmlFor="adults" className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1.5">Adultos *</label>
                 <select id="adults" value={adults} onChange={e => setAdults(parseInt(e.target.value))}
-                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow"
+                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow"
                   aria-required="true">
                   {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
@@ -322,7 +323,7 @@ export default function NewReservation() {
               <div>
                 <label htmlFor="children" className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1.5">Niños</label>
                 <select id="children" value={children} onChange={e => setChildren(parseInt(e.target.value))}
-                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow">
+                  className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow">
                   {[0, 1, 2, 3, 4].map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
@@ -332,7 +333,7 @@ export default function NewReservation() {
               <label htmlFor="special-requests" className="block text-xs font-medium text-surface-700 dark:text-surface-300 mb-1.5">Solicitudes especiales</label>
               <textarea id="special-requests" value={specialRequests} onChange={e => setSpecialRequests(e.target.value)} rows="3"
                 placeholder="Alergias, preferencias de habitación, hora de llegada..."
-                className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent transition-shadow" />
+                className="w-full px-3 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-900 dark:text-surface-100 bg-white dark:bg-surface-800 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent focus:shadow-md focus:shadow-primary-500/20 transition-shadow" />
             </div>
           </div>
 

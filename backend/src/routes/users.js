@@ -68,7 +68,7 @@ router.post('/', async (req, res, next) => {
     }
 
     // Validar rol
-    const validRoles = ['ADMIN', 'MANAGER', 'RECEPTIONIST'];
+    const validRoles = ['ADMIN', 'MANAGER', 'RECEPCIONIST'];
     if (role && !validRoles.includes(role)) {
       return res.status(400).json({ error: 'Rol inválido. Roles válidos: ADMIN, MANAGER, RECEPCIONIST' });
     }
@@ -87,7 +87,7 @@ router.post('/', async (req, res, next) => {
         email,
         passwordHash,
         name,
-        role: role || 'RECEPTIONIST',
+        role: role || 'RECEPCIONIST',
       },
       select: {
         id: true,
@@ -132,7 +132,7 @@ router.put('/:id', async (req, res, next) => {
     }
 
     // Validar rol
-    const validRoles = ['ADMIN', 'MANAGER', 'RECEPTIONIST'];
+    const validRoles = ['ADMIN', 'MANAGER', 'RECEPCIONIST'];
     if (role && !validRoles.includes(role)) {
       return res.status(400).json({ error: 'Rol inválido. Roles válidos: ADMIN, MANAGER, RECEPCIONIST' });
     }

@@ -6,17 +6,18 @@ WORKDIR /app
 RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 
 # Install dependencies
-COPY package*.json ./
+COPY backend/package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
 # Generate Prisma client
-COPY prisma ./prisma/
+COPY backend/prisma ./prisma/
 RUN npx prisma generate
 
 # Copy source
-COPY src ./src/
+COPY backend/src ./src/
 
-# Frontend is served separately via nginx, no need to copy dist here
+# Copy pre-built frontend dist for SPA serving
+COPY frontend/dist ./public/
 
 # Switch to non-root user
 USER appuser
